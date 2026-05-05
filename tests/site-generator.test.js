@@ -48,6 +48,23 @@ test('renderSite includes the story-mode title, Hermes log, and privacy-safe har
   assert.doesNotMatch(html, /OBSBOT/i);
 });
 
+test('renderSite uses an intuitive cartoon bread loaf logo instead of the old camera-eye mark', () => {
+  const html = renderSite(buildViewModel(sampleData));
+
+  assert.match(html, /aria-label="cartoon bread loaf logo"/);
+  assert.match(html, /<span class="crust-mark crust-mark-a"/);
+  assert.doesNotMatch(html, /<circle cx="24" cy="27"/);
+  assert.doesNotMatch(html, /c3\.6-5\.2 8\.3-7\.8 14-7\.8/);
+});
+
+test('renderSite wraps the live webcam image in a mobile-friendly snapshot viewport', () => {
+  const html = renderSite(buildViewModel(sampleData));
+
+  assert.match(html, /class="panel photo snapshotCard"/);
+  assert.match(html, /class="snapshotViewport"/);
+  assert.match(html, /class="starterSnapshot"/);
+});
+
 test('renderSite escapes user-provided event text', () => {
   const unsafe = structuredClone(sampleData);
   unsafe.events = [{ time: '13:37', title: '<script>alert(1)</script>', note: 'bubbles & <b>rise</b>' }];
