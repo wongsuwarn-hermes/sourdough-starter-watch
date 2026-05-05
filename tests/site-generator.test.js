@@ -12,7 +12,9 @@ const sampleData = {
     nextCheckMinutes: 10,
     image: 'photos/starter.jpg',
     mood: 'ambitious',
-    note: 'The starter is rising with visible activity.'
+    note: 'The starter is rising with visible activity.',
+    baselineCm: 2.2,
+    heightCm: 3.7
   },
   events: [
     { time: '08:10', title: 'Fed.', note: 'Simon reset the baseline.' },
@@ -115,10 +117,23 @@ test('renderSite uses visitor-friendly starter stage copy instead of code-like p
 test('renderSite uses visitor-friendly confidence and timing labels', () => {
   const html = renderSite(buildViewModel(sampleData));
 
-  assert.match(html, /<span>Estimate<\/span><b>74%<\/b><small>how sure we are<\/small>/);
+  assert.match(html, /<span>Read confidence<\/span><b>74%<\/b><small>visual read certainty<\/small>/);
   assert.match(html, /<span>Next photo<\/span><b>10m<\/b><small>planned check-in<\/small>/);
+  assert.doesNotMatch(html, /<span>Estimate<\/span>/);
   assert.doesNotMatch(html, /<span>AI conf\.<\/span>/);
   assert.doesNotMatch(html, /<span>Next<\/span>/);
+});
+
+test('renderSite explains how the latest webcam reading was measured', () => {
+  const html = renderSite(buildViewModel(sampleData));
+
+  assert.match(html, /class="measurementOverlay"/);
+  assert.match(html, /class="measureLine baselineLine"/);
+  assert.match(html, /class="measureLine currentLine"/);
+  assert.match(html, /Baseline 2\.2 cm/);
+  assert.match(html, /Current ~3\.7 cm/);
+  assert.match(html, /<strong>Measured from the photo<\/strong>/);
+  assert.match(html, /Baseline 2\.2 cm → current ~3\.7 cm → \+68% rise/);
 });
 
 test('renderSite draws the rise curve from actual observations and feeding events', () => {
@@ -142,6 +157,20 @@ test('renderSite draws the rise curve from actual observations and feeding event
   assert.doesNotMatch(html, /data-event-cue="1" data-rise/);
   assert.doesNotMatch(html, /class="eventMarker"/);
   assert.doesNotMatch(html, /curve flattening\?/);
+});
+
+test('renderSite calls out the latest point on the rise curve', () => {
+  const data = structuredClone(sampleData);
+  data.observations = [
+    { time: '07:30', risePercent: 0 },
+    { time: '08:45', risePercent: 25 },
+    { time: '10:15', risePercent: 80 }
+  ];
+  const html = renderSite(buildViewModel(data));
+
+  assert.match(html, /class="latestReadingCallout"/);
+  assert.match(html, /Now: \+80% at 10:15/);
+  assert.match(html, /latest measured point/);
 });
 
 test('renderSite groups diary events as annotations inside the rise curve panel', () => {

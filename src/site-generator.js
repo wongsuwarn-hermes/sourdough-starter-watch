@@ -41,7 +41,9 @@ export function buildViewModel(data) {
       nextLabel: nextCheck > 0 ? `${nextCheck}m` : '—',
       image: current.image ?? 'photos/starter.jpg',
       mood: current.mood ?? 'curious',
-      note: current.note ?? 'Hermes is watching for meaningful changes.'
+      note: current.note ?? 'Hermes is watching for meaningful changes.',
+      baselineCm: current.baselineCm ?? data.starter?.baselineCm,
+      heightCm: current.heightCm
     },
     events: Array.isArray(data.events) ? data.events : [],
     observations: Array.isArray(data.observations) ? data.observations : []
@@ -59,6 +61,30 @@ function linkHermesText(value) {
 function renderMetric(label, value, helper = '') {
   const helperHtml = helper ? `<small>${escapeHtml(helper)}</small>` : '';
   return `<div class="metric"><span>${escapeHtml(label)}</span><b>${escapeHtml(value)}</b>${helperHtml}</div>`;
+}
+
+function formatCm(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return null;
+  return numeric.toFixed(1).replace(/\.0$/, '');
+}
+
+function renderMeasurementOverlay(current) {
+  const baseline = formatCm(current.baselineCm);
+  const height = formatCm(current.heightCm);
+  if (!baseline || !height) return '';
+
+  return `<div class="measurementOverlay" aria-label="visual guide to the latest starter measurement">
+    <span class="measureLine currentLine"><b>Current ~${escapeHtml(height)} cm</b></span>
+    <span class="measureLine baselineLine"><b>Baseline ${escapeHtml(baseline)} cm</b></span>
+  </div>`;
+}
+
+function renderMeasurementSummary(current) {
+  const baseline = formatCm(current.baselineCm);
+  const height = formatCm(current.heightCm);
+  if (!baseline || !height) return '';
+  return `<div class="measurementSummary"><strong>Measured from the photo</strong><span>Baseline ${escapeHtml(baseline)} cm → current ~${escapeHtml(height)} cm → ${escapeHtml(current.riseLabel)} rise</span></div>`;
 }
 
 function sortedEvents(events) {
@@ -144,17 +170,24 @@ function renderChartSvg({ observations, events, width, height, className, layout
   const labelY = height - 12;
   const yLabelX = Math.max(4, layout.left - 46);
 
-  return `<svg class="chart ${className}" data-chart="actual-observations" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" aria-label="starter rise over time"><defs><linearGradient id="riseFill2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f54e00" stop-opacity=".26"/><stop offset="100%" stop-color="#f54e00" stop-opacity="0"/></linearGradient></defs>${axisMarkup(layout)}<g class="ylabel"><text x="${yLabelX}" y="${layout.top + 6}">100%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .25 + 6}">75%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .5 + 6}">50%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .75 + 6}">25%</text><text x="${yLabelX + 8}" y="${layout.bottom + 4}">0%</text></g><path class="area" d="${areaPath}"/><path class="line" d="${linePath}"/><g class="dots">${points.map((point, index) => `<circle class="chartDot" data-rise="${point.rise}" aria-label="${escapeHtml(point.time)}: ${point.rise >= 0 ? '+' : ''}${point.rise}% rise" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${index === points.length - 1 ? 7 : 5}"/>`).join('')}</g><g class="xlabel">${labels.map((point, index) => {
+  return `<svg class="chart ${className}" data-chart="actual-observations" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" aria-label="starter rise over time"><defs><linearGradient id="riseFill2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f54e00" stop-opacity=".20"/><stop offset="100%" stop-color="#f54e00" stop-opacity="0"/></linearGradient></defs>${axisMarkup(layout)}<g class="ylabel"><text x="${yLabelX}" y="${layout.top + 6}">100%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .25 + 6}">75%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .5 + 6}">50%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .75 + 6}">25%</text><text x="${yLabelX + 8}" y="${layout.bottom + 4}">0%</text></g><path class="area" d="${areaPath}"/><path class="line" d="${linePath}"/><g class="dots">${points.map((point, index) => `<circle class="chartDot" data-rise="${point.rise}" aria-label="${escapeHtml(point.time)}: ${point.rise >= 0 ? '+' : ''}${point.rise}% rise" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${index === points.length - 1 ? 7 : 5}"/>`).join('')}</g><g class="xlabel">${labels.map((point, index) => {
     const anchor = index === 0 ? 'start' : index === labels.length - 1 ? 'end' : 'middle';
     return `<text text-anchor="${anchor}" x="${point.x.toFixed(1)}" y="${labelY}">${escapeHtml(point.time)}</text>`;
   }).join('')}</g></svg>`;
 }
 
+function renderLatestReadingCallout(points) {
+  const latest = points.at(-1);
+  if (!latest) return '';
+  const riseLabel = `${latest.rise >= 0 ? '+' : ''}${latest.rise}%`;
+  return `<div class="latestReadingCallout"><strong>Now: ${escapeHtml(riseLabel)} at ${escapeHtml(latest.time)}</strong><span>latest measured point from the webcam sequence</span></div>`;
+}
+
 function renderChart(observations = [], events = []) {
   const points = normalizeChartData(observations);
-  const desktop = renderChartSvg({ observations, events, width: 760, height: 270, className: 'chartDesktop', layout: { left: 54, right: 730, top: 28, bottom: 244 }, empty: points.length === 0 });
-  const mobile = renderChartSvg({ observations, events, width: 390, height: 330, className: 'chartMobile', layout: { left: 48, right: 366, top: 34, bottom: 286 }, empty: points.length === 0 });
-  return `<div class="chartFrame">${desktop}${mobile}</div>`;
+  const desktop = renderChartSvg({ observations, events, width: 760, height: 270, className: 'chartDesktop', layout: { left: 54, right: 704, top: 28, bottom: 244 }, empty: points.length === 0 });
+  const mobile = renderChartSvg({ observations, events, width: 390, height: 330, className: 'chartMobile', layout: { left: 48, right: 350, top: 34, bottom: 286 }, empty: points.length === 0 });
+  return `<div class="chartFrame">${desktop}${mobile}</div>${renderLatestReadingCallout(points)}`;
 }
 function logoSvg() {
   return `<div class="loafLogo" role="img" aria-label="cartoon bread loaf logo"><span class="loafBody"></span><span class="crust-mark crust-mark-a"></span><span class="crust-mark crust-mark-b"></span><span class="crust-mark crust-mark-c"></span><span class="loafSmile"></span></div>`;
@@ -167,7 +200,7 @@ export function renderSite(vm) {
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(vm.title)}</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,650;9..144,800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css"></head><body><div class="wrap"><header class="topbar"><div class="brand"><div class="logo" aria-hidden="true">${logoSvg()}</div><div>${escapeHtml(vm.title)}</div></div><div class="navpills"><span class="pill dark">FERMENTATION LAB · STORY MODE</span><span class="pill orange">Observed by ${hermesLink()}</span></div></header>
-<main><section class="hero"><div class="panel heroCopy"><span class="tag">${escapeHtml(vm.starterName)} · PUBLIC OBSERVATORY</span><h1>${titleLines}</h1><p class="sub">A living fermentation experiment watched by a webcam and narrated by Hermes. The agent checks the starter, estimates its rise, writes notes, and pings Telegram when the jar does something worth noticing.</p><div class="storyline"><span class="storylineLabel">Current status</span><b>Today’s mood: ${escapeHtml(current.mood)}.</b> ${escapeHtml(current.note)} Hermes has armed peak watch, which is less dramatic than it sounds — but only slightly.</div><div class="metrics">${renderMetric('Rise', current.riseLabel)}${renderMetric('Stage', current.phaseLabel, 'starter activity')}${renderMetric('Estimate', current.confidenceLabel, 'how sure we are')}${renderMetric('Next photo', current.nextLabel, 'planned check-in')}</div></div><div class="panel photo snapshotCard"><div class="snapshotViewport"><img class="snapshotBackdrop" src="${escapeHtml(current.image)}" alt="" aria-hidden="true"><img class="starterSnapshot" src="${escapeHtml(current.image)}" alt="latest webcam view of sourdough starter"></div><div class="photoOverlay"><div><strong>Latest webcam frame</strong><small>Actual camera view used for estimation</small></div><div><small>${escapeHtml(formatTime(current.timestamp))} · webcam</small></div></div><div class="photoInsight"><div><strong>Latest reading</strong><b>${escapeHtml(current.riseLabel)} rise</b></div><div><strong>What to look for</strong><span>bubbles, the height line, and whether the top is domed or sinking</span></div></div></div></section>
+<main><section class="hero"><div class="panel heroCopy"><span class="tag">${escapeHtml(vm.starterName)} · PUBLIC OBSERVATORY</span><h1>${titleLines}</h1><p class="sub">A living fermentation experiment watched by a webcam and narrated by Hermes. The agent checks the starter, estimates its rise, writes notes, and pings Telegram when the jar does something worth noticing.</p><div class="storyline"><span class="storylineLabel">Current status</span><b>Today’s mood: ${escapeHtml(current.mood)}.</b> ${escapeHtml(current.note)} Hermes has armed peak watch, which is less dramatic than it sounds — but only slightly.</div><div class="metrics">${renderMetric('Rise', current.riseLabel)}${renderMetric('Stage', current.phaseLabel, 'starter activity')}${renderMetric('Read confidence', current.confidenceLabel, 'visual read certainty')}${renderMetric('Next photo', current.nextLabel, 'planned check-in')}</div></div><div class="panel photo snapshotCard"><div class="snapshotViewport"><img class="snapshotBackdrop" src="${escapeHtml(current.image)}" alt="" aria-hidden="true"><img class="starterSnapshot" src="${escapeHtml(current.image)}" alt="latest webcam view of sourdough starter">${renderMeasurementOverlay(current)}</div><div class="photoOverlay"><div><strong>Latest webcam frame</strong><small>Actual camera view used for estimation</small></div><div><small>${escapeHtml(formatTime(current.timestamp))} · webcam</small></div></div>${renderMeasurementSummary(current)}<div class="photoInsight"><div><strong>Latest reading</strong><b>${escapeHtml(current.riseLabel)} rise</b></div><div><strong>What to look for</strong><span>bubbles, the height line, and whether the top is domed or sinking</span></div></div></div></section>
 <section class="grid readingsGrid"><div class="panel curvePanel"><div class="sectionHead"><h2>Today’s rise curve</h2><span class="pill">actual readings vs. baseline</span></div>${renderChart(vm.observations, vm.events)}${renderCurveAnnotations(vm.events)}</div></section>
 <div class="implementationDivider" aria-label="technical implementation section begins"><span class="dividerEyebrow">Technical implementation</span><strong>Behind the Scenes</strong></div>
 <section class="how"><div class="panel howcopy"><span class="tag">HOW THE WATCH WORKS</span><div class="quote">Domestic science, narrated by an AI agent.</div><p class="note">Every few minutes, a small local computer captures a webcam image. Hermes estimates the starter’s current height, compares it with previous readings, records uncertainty, updates the website, and sends Telegram alerts for meaningful events. The AI can be wrong — glass, residue and lighting are tricky — so Simon can correct key moments like feeding or baseline resets.</p></div><div class="panel diagram"><div class="node"><b>Webcam</b><span>Fixed view of the jar, ideally square-on with a visible baseline.</span></div><div class="arrow">↓ photo capture</div><div class="node"><b>Local computer</b><span>Runs the scheduler, stores photos, and generates public site data.</span></div><div class="arrow">↓ image + context</div><div class="node"><b>Hermes AI</b><span>Estimates rise, labels stage, writes notes, decides whether to alert.</span></div><div class="arrow">↓ publish + notify</div><div class="node"><b>Website</b><span>Public story dashboard for friends; richer lab/debug view for Simon later.</span></div></div></section></main><div class="footer">Prototype: Fermentation Lab visual base × Living Storybook personality × AI-agent transparency</div></div></body></html>`;
