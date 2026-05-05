@@ -1,5 +1,4 @@
 node_modules/
 .DS_Store
-public/photos/*.jpg
-public/photos/*.jpeg
-public/photos/*.png
+public/photos/*
+!public/photos/starter.jpg

@@ -1,4 +1,5 @@
-import { mkdir, readFile, writeFile, copyFile } from 'node:fs/promises';
+import { access, mkdir, readFile, writeFile, copyFile } from 'node:fs/promises';
+import { constants } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildViewModel, renderSite } from '../src/site-generator.js';
@@ -16,10 +17,15 @@ async function main() {
   await writeFile(join(publicDir, 'index.html'), html);
   await copyFile(join(root, 'src', 'styles.css'), join(publicDir, 'styles.css'));
 
+  const starterPhoto = join(photosDir, 'starter.jpg');
   try {
-    await copyFile('/Users/mac_studio/.hermes/tmp/sourdough_site_mockups/starter.jpg', join(photosDir, 'starter.jpg'));
+    await access(starterPhoto, constants.F_OK);
   } catch {
-    // The first real capture job will populate this file. The site still builds without it.
+    try {
+      await copyFile('/Users/mac_studio/.hermes/tmp/sourdough_site_mockups/starter.jpg', starterPhoto);
+    } catch {
+      // The first real capture job will populate this file. The site still builds without it.
+    }
   }
 
   console.log(`Built ${join(publicDir, 'index.html')}`);

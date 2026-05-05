@@ -4,14 +4,14 @@
     "displayName": "Simon’s Sourdough Starter Watch"
   },
   "current": {
-    "timestamp": "2026-05-05T07:09:00+01:00",
-    "risePercent": 68,
-    "phase": "rising",
-    "confidence": 0.74,
-    "nextCheckMinutes": 10,
+    "timestamp": "2026-05-05T09:43:50+01:00",
+    "risePercent": 0,
+    "phase": "dormant",
+    "confidence": 0.55,
+    "nextCheckMinutes": 60,
     "image": "photos/starter.jpg",
-    "mood": "ambitious",
-    "note": "The starter is rising with visible activity."
+    "mood": "sleepy",
+    "note": "Fresh webcam frame published; starter appears close to baseline, with precise rise estimate pending calibration."
   },
   "events": [
     {
@@ -36,8 +36,26 @@
     }
   ],
   "observations": [
-    { "time": "08:00", "risePercent": 0 },
-    { "time": "10:00", "risePercent": 30 },
-    { "time": "12:00", "risePercent": 68 }
+    {
+      "time": "08:00",
+      "risePercent": 0
+    },
+    {
+      "time": "10:00",
+      "risePercent": 30
+    },
+    {
+      "time": "12:00",
+      "risePercent": 68
+    },
+    {
+      "timestamp": "2026-05-05T09:43:50+01:00",
+      "time": "09:43",
+      "risePercent": 0,
+      "phase": "dormant",
+      "confidence": 0.55,
+      "image": "photos/starter.jpg",
+      "note": "Fresh webcam frame published; starter appears close to baseline, with precise rise estimate pending calibration."
+    }
   ]
 }
