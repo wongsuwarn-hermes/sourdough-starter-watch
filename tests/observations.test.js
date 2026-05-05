@@ -18,14 +18,15 @@ const baseData = {
   observations: []
 };
 
-test('addObservation appends a normalized observation and updates current state', () => {
+test('addObservation appends a sourced normalized observation and updates current state', () => {
   const updated = addObservation(baseData, {
     timestamp: '2026-05-05T12:30:00+01:00',
     risePercent: '82.4',
     phase: 'rising',
     confidence: '0.81',
     image: 'photos/captures/20260505_123000.jpg',
-    note: 'Bubble activity increasing.'
+    note: 'Bubble activity increasing.',
+    source: 'hermes-vision'
   });
 
   assert.equal(updated.observations.length, 1);
@@ -36,11 +37,36 @@ test('addObservation appends a normalized observation and updates current state'
     phase: 'rising',
     confidence: 0.81,
     image: 'photos/captures/20260505_123000.jpg',
-    note: 'Bubble activity increasing.'
+    note: 'Bubble activity increasing.',
+    source: 'hermes-vision'
   });
   assert.equal(updated.current.risePercent, 82);
   assert.equal(updated.current.confidence, 0.81);
+  assert.equal(updated.current.source, 'hermes-vision');
   assert.equal(updated.current.nextCheckMinutes, 10);
+});
+
+test('addObservation keeps observations chronological for trustworthy charting', () => {
+  const data = {
+    ...baseData,
+    observations: [
+      { timestamp: '2026-05-05T12:00:00+01:00', time: '12:00', risePercent: 68, phase: 'rising', confidence: 0.7, image: 'photos/starter.jpg', note: 'Later reading.', source: 'hermes-vision' }
+    ]
+  };
+
+  const updated = addObservation(data, {
+    timestamp: '2026-05-05T10:30:00+01:00',
+    risePercent: 40,
+    phase: 'rising',
+    confidence: 0.7,
+    image: 'photos/starter.jpg',
+    note: 'Earlier reading.',
+    source: 'manual-correction'
+  });
+
+  assert.deepEqual(updated.observations.map((observation) => observation.time), ['10:30', '12:00']);
+  assert.equal(updated.current.timestamp, '2026-05-05T12:00:00+01:00');
+  assert.equal(updated.observations[0].source, 'manual-correction');
 });
 
 test('addObservation chooses slower cadence for dormant or low-confidence observations', () => {
@@ -66,7 +92,8 @@ test('addEvent prepends a manual feeding event and can reset the current baselin
   });
 
   assert.equal(updated.events[0].time, '08:10');
-  assert.equal(updated.events[0].title, 'Fed.');
+  assert.equal(updated.events[0].type, 'fed');
+  assert.equal(updated.events[0].source, 'manual');
   assert.equal(updated.starter.baselineCm, 2.4);
   assert.equal(updated.current.heightCm, 2.4);
   assert.equal(updated.current.risePercent, 0);

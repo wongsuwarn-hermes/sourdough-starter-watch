@@ -14,7 +14,8 @@
     "mood": "ambitious",
     "note": "Hermes visual read: Main foamy surface sits a little above the 3 cm mark; plausible range about 3.2-3.6 cm.",
     "baselineCm": 2.2,
-    "heightCm": 3.4
+    "heightCm": 3.4,
+    "source": "hermes-vision"
   },
   "events": [
     {
@@ -22,42 +23,29 @@
       "title": "Baseline set.",
       "note": "Baseline set to 2.2cm.",
       "type": "baseline",
-      "baselineCm": 2.2
+      "baselineCm": 2.2,
+      "source": "manual"
     },
     {
       "time": "08:10",
       "title": "Fed.",
-      "note": "Simon reset the baseline. The origin story begins again."
+      "note": "Simon reset the baseline. The origin story begins again.",
+      "source": "manual"
     },
     {
       "time": "09:20",
       "title": "First bubbles.",
-      "note": "Suspicious optimism detected near the lower edge of the jar."
+      "note": "Suspicious optimism detected near the lower edge of the jar.",
+      "source": "manual"
     },
     {
       "time": "11:40",
       "title": "Acceleration.",
-      "note": "The rise curve steepens. Main character energy."
-    },
-    {
-      "time": "13:10",
-      "title": "Peak watch.",
-      "note": "Hermes will bother Simon only if something important happens."
+      "note": "The rise curve steepens. Main character energy.",
+      "source": "manual"
     }
   ],
   "observations": [
-    {
-      "time": "08:00",
-      "risePercent": 0
-    },
-    {
-      "time": "10:00",
-      "risePercent": 30
-    },
-    {
-      "time": "12:00",
-      "risePercent": 68
-    },
     {
       "timestamp": "2026-05-05T09:43:50+01:00",
       "time": "09:43",
@@ -65,7 +53,8 @@
       "phase": "dormant",
       "confidence": 0.55,
       "image": "photos/starter.jpg",
-      "note": "Fresh webcam frame published; starter appears close to baseline, with precise rise estimate pending calibration."
+      "note": "Fresh webcam frame published; starter appears close to baseline, with precise rise estimate pending calibration.",
+      "source": "hermes-vision"
     },
     {
       "timestamp": "2026-05-05T10:01:43+01:00",
@@ -76,7 +65,8 @@
       "image": "photos/starter.jpg",
       "note": "Hermes visual read: bulk surface is conservatively near 3.0cm; glare and jar curvature limit precision.",
       "baselineCm": 2.2,
-      "heightCm": 3
+      "heightCm": 3,
+      "source": "hermes-vision"
     },
     {
       "timestamp": "2026-05-05T10:12:43+01:00",
@@ -87,7 +77,8 @@
       "image": "photos/starter.jpg",
       "note": "Hermes visual read: main surface just above 3 cm mark; approx 3.0-3.4 cm, phase uncertain",
       "baselineCm": 2.2,
-      "heightCm": 3.2
+      "heightCm": 3.2,
+      "source": "hermes-vision"
     },
     {
       "timestamp": "2026-05-05T11:16:32+01:00",
@@ -98,7 +89,8 @@
       "image": "photos/starter.jpg",
       "note": "Hermes visual read: Main surface a little above 3 cm with bubbly uneven top; plausible 3.2-3.6 cm.",
       "baselineCm": 2.2,
-      "heightCm": 3.4
+      "heightCm": 3.4,
+      "source": "hermes-vision"
     },
     {
       "timestamp": "2026-05-05T12:18:32+01:00",
@@ -109,7 +101,8 @@
       "image": "photos/starter.jpg",
       "note": "Hermes visual read: Main foamy surface sits a little above the 3 cm mark; plausible range about 3.2-3.6 cm.",
       "baselineCm": 2.2,
-      "heightCm": 3.4
+      "heightCm": 3.4,
+      "source": "hermes-vision"
     }
   ]
 }

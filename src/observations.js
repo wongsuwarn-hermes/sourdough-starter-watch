@@ -1,7 +1,7 @@
 export function addObservation(data, rawObservation) {
   const observation = normalizeObservation(rawObservation);
-  const observations = [...(data.observations ?? []), observation];
-  const current = deriveCurrentFromObservation(observation);
+  const observations = [...(data.observations ?? []), observation].sort(compareObservationTime);
+  const current = deriveCurrentFromObservation(observations.at(-1));
 
   return {
     ...data,
@@ -54,6 +54,7 @@ export function deriveCurrentFromObservation(observation) {
     image: observation.image,
     baselineCm: observation.baselineCm,
     heightCm: observation.heightCm,
+    source: observation.source,
     mood: moodForPhase(phase, risePercent),
     note: observation.note ?? noteForPhase(phase),
     nextCheckMinutes: nextCadenceMinutes({ phase, confidence, risePercent })
@@ -71,7 +72,8 @@ function normalizeObservation(raw) {
     phase: String(raw.phase ?? 'unknown').toLowerCase(),
     confidence: Number(confidence.toFixed(2)),
     image: raw.image ?? 'photos/starter.jpg',
-    note: raw.note ?? noteForPhase(raw.phase)
+    note: raw.note ?? noteForPhase(raw.phase),
+    source: String(raw.source ?? 'manual').toLowerCase()
   };
   const baselineCm = parseOptionalNumber(raw.baselineCm);
   const heightCm = parseOptionalNumber(raw.heightCm);
@@ -86,7 +88,8 @@ function normalizeEvent(raw) {
     time: formatTime(timestamp),
     title: raw.title ?? 'Manual note.',
     note: raw.note ?? '',
-    type: raw.type ?? 'note'
+    type: raw.type ?? 'note',
+    source: String(raw.source ?? 'manual').toLowerCase()
   };
   const baselineCm = parseOptionalNumber(raw.baselineCm);
   if (baselineCm !== undefined) event.baselineCm = baselineCm;
@@ -136,6 +139,18 @@ function noteForPhase(phase) {
 function formatTime(timestamp) {
   const match = String(timestamp).match(/T(\d{2}:\d{2})/);
   return match ? match[1] : String(timestamp).slice(0, 5);
+}
+
+function compareObservationTime(a, b) {
+  return timestampValue(a) - timestampValue(b);
+}
+
+function timestampValue(observation) {
+  const timestamp = Date.parse(observation.timestamp ?? '');
+  if (Number.isFinite(timestamp)) return timestamp;
+  const match = String(observation.time ?? '').match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return 0;
+  return Number(match[1]) * 60 + Number(match[2]);
 }
 
 function clamp(value, min, max) {

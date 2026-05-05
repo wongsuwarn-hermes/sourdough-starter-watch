@@ -33,7 +33,8 @@ export function buildObservationFromReading({
   heightCm,
   previousRisePercent = 0,
   confidence = 0.5,
-  note
+  note,
+  source = 'hermes-vision'
 }) {
   const estimate = estimateRiseFromHeight({ baselineCm, heightCm });
   const normalizedConfidence = clamp(Number(confidence), 0, 1);
@@ -50,6 +51,7 @@ export function buildObservationFromReading({
     heightCm: estimate.heightCm,
     risePercent: estimate.risePercent,
     phase,
+    source,
     confidence: Number(normalizedConfidence.toFixed(2)),
     note: note ?? noteForReading({ phase, confidence: normalizedConfidence })
   };

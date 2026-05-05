@@ -41,5 +41,6 @@ test('buildObservationFromReading produces a calibrated observation with uncerta
   assert.equal(observation.heightCm, 2.75);
   assert.equal(observation.baselineCm, 2.2);
   assert.equal(observation.confidence, 0.62);
+  assert.equal(observation.source, 'hermes-vision');
   assert.match(observation.note, /Jar markings are visible/);
 });

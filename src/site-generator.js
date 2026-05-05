@@ -76,8 +76,7 @@ function renderCurveAnnotations(events) {
   const annotations = sortedEvents(events);
   if (annotations.length === 0) return '';
 
-  return `<div class="curveAnnotations"><div class="annotationHead"><h3>Key moments</h3><span>notes from today’s rise</span></div><div class="annotationList">${annotations.map((event, index) => {
-    const cue = index + 1;
+  return `<div class="curveAnnotations"><div class="annotationHead"><h3>Key moments</h3><span>notes from today’s rise</span></div><div class="annotationList">${annotations.map((event) => {
     return `
     <article class="annotation" data-event-time="${escapeHtml(event.time)}">
       <time>${escapeHtml(event.time)}</time>
