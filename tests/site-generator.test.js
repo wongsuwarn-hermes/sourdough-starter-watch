@@ -85,6 +85,15 @@ test('renderSite uses visitor-friendly starter stage copy instead of code-like p
   assert.doesNotMatch(html, /<span>Phase<\/span><b>R\+<\/b>/);
 });
 
+test('renderSite uses visitor-friendly confidence and timing labels', () => {
+  const html = renderSite(buildViewModel(sampleData));
+
+  assert.match(html, /<span>Estimate<\/span><b>74%<\/b><small>how sure we are<\/small>/);
+  assert.match(html, /<span>Next photo<\/span><b>10m<\/b><small>planned check-in<\/small>/);
+  assert.doesNotMatch(html, /<span>AI conf\.<\/span>/);
+  assert.doesNotMatch(html, /<span>Next<\/span>/);
+});
+
 test('renderSite escapes user-provided event text', () => {
   const unsafe = structuredClone(sampleData);
   unsafe.events = [{ time: '13:37', title: '<script>alert(1)</script>', note: 'bubbles & <b>rise</b>' }];
