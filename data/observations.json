@@ -5,14 +5,14 @@
     "baselineCm": 2.2
   },
   "current": {
-    "timestamp": "2026-05-05T19:32:00+01:00",
+    "timestamp": "2026-05-05T19:46:23+01:00",
     "risePercent": 73,
     "phase": "rising",
-    "confidence": 0.57,
+    "confidence": 0.62,
     "nextCheckMinutes": 10,
-    "image": "photos/captures/20260505_193122.jpg",
+    "image": "photos/captures/20260505_194532.jpg",
     "mood": "ambitious",
-    "note": "Hermes visual read: current surface is estimated near 3.8 cm against the 2.2 cm baseline; dim lighting and reflections reduce certainty.",
+    "note": "Hermes visual read: starter surface near 3.8 cm; ignored glare, wall residue, reflections, and old streaks.",
     "baselineCm": 2.2,
     "heightCm": 3.8,
     "source": "hermes-vision"
@@ -280,6 +280,18 @@
       "confidence": 0.57,
       "image": "photos/captures/20260505_193122.jpg",
       "note": "Hermes visual read: current surface is estimated near 3.8 cm against the 2.2 cm baseline; dim lighting and reflections reduce certainty.",
+      "source": "hermes-vision",
+      "baselineCm": 2.2,
+      "heightCm": 3.8
+    },
+    {
+      "timestamp": "2026-05-05T19:46:23+01:00",
+      "time": "19:46",
+      "risePercent": 73,
+      "phase": "rising",
+      "confidence": 0.62,
+      "image": "photos/captures/20260505_194532.jpg",
+      "note": "Hermes visual read: starter surface near 3.8 cm; ignored glare, wall residue, reflections, and old streaks.",
       "source": "hermes-vision",
       "baselineCm": 2.2,
       "heightCm": 3.8
