@@ -1,19 +1,29 @@
 {
   "starter": {
     "name": "STARTER-001",
-    "displayName": "Simon’s Sourdough Starter Watch"
+    "displayName": "Simon’s Sourdough Starter Watch",
+    "baselineCm": 2.2
   },
   "current": {
-    "timestamp": "2026-05-05T09:43:50+01:00",
-    "risePercent": 0,
-    "phase": "dormant",
-    "confidence": 0.55,
-    "nextCheckMinutes": 60,
+    "timestamp": "2026-05-05T09:01:43.757Z",
+    "risePercent": 36,
+    "phase": "rising",
+    "confidence": 0.72,
+    "nextCheckMinutes": 10,
     "image": "photos/starter.jpg",
-    "mood": "sleepy",
-    "note": "Fresh webcam frame published; starter appears close to baseline, with precise rise estimate pending calibration."
+    "mood": "ambitious",
+    "note": "Hermes visual read: bulk surface is conservatively near 3.0cm; glare and jar curvature limit precision.",
+    "baselineCm": 2.2,
+    "heightCm": 3
   },
   "events": [
+    {
+      "time": "09:01",
+      "title": "Baseline set.",
+      "note": "Baseline set to 2.2cm.",
+      "type": "baseline",
+      "baselineCm": 2.2
+    },
     {
       "time": "08:10",
       "title": "Fed.",
@@ -56,6 +66,28 @@
       "confidence": 0.55,
       "image": "photos/starter.jpg",
       "note": "Fresh webcam frame published; starter appears close to baseline, with precise rise estimate pending calibration."
+    },
+    {
+      "timestamp": "2026-05-05T08:59:01.047Z",
+      "time": "08:59",
+      "risePercent": 0,
+      "phase": "dormant",
+      "confidence": 0.45,
+      "image": "photos/starter.jpg",
+      "note": "Dry-run automation check; fresh webcam frame captured through Terminal permission path.",
+      "baselineCm": 2.2,
+      "heightCm": 2.2
+    },
+    {
+      "timestamp": "2026-05-05T09:01:43.757Z",
+      "time": "09:01",
+      "risePercent": 36,
+      "phase": "rising",
+      "confidence": 0.72,
+      "image": "photos/starter.jpg",
+      "note": "Hermes visual read: bulk surface is conservatively near 3.0cm; glare and jar curvature limit precision.",
+      "baselineCm": 2.2,
+      "heightCm": 3
     }
   ]
 }

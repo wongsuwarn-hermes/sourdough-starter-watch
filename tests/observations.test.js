@@ -61,14 +61,41 @@ test('addEvent prepends a manual feeding event and can reset the current baselin
     time: '2026-05-05T08:10:00+01:00',
     title: 'Fed.',
     note: 'Simon reset the baseline.',
-    type: 'fed'
+    type: 'fed',
+    baselineCm: 2.4
   });
 
   assert.equal(updated.events[0].time, '08:10');
   assert.equal(updated.events[0].title, 'Fed.');
+  assert.equal(updated.starter.baselineCm, 2.4);
+  assert.equal(updated.current.heightCm, 2.4);
   assert.equal(updated.current.risePercent, 0);
   assert.equal(updated.current.phase, 'fed');
   assert.equal(updated.current.mood, 'freshly fed');
+});
+
+test('addEvent records baseline and note commands without resetting current observation unless fed', () => {
+  const baseline = addEvent(baseData, {
+    time: '2026-05-05T08:12:00+01:00',
+    title: 'Baseline set.',
+    note: 'Rubber band aligned with true starter surface.',
+    type: 'baseline',
+    baselineCm: 2.2
+  });
+
+  assert.equal(baseline.starter.baselineCm, 2.2);
+  assert.equal(baseline.current.risePercent, 68);
+  assert.equal(baseline.events[0].type, 'baseline');
+
+  const note = addEvent(baseData, {
+    time: '2026-05-05T08:20:00+01:00',
+    title: 'Lighting note.',
+    note: 'Moved jar away from glare.',
+    type: 'note'
+  });
+
+  assert.equal(note.current.risePercent, 68);
+  assert.equal(note.events[0].type, 'note');
 });
 
 test('deriveCurrentFromObservation produces story mood from phase', () => {

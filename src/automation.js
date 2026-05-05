@@ -1,0 +1,75 @@
+export function defaultReadingFromData(data) {
+  const baselineCm = Number(data.starter?.baselineCm ?? data.current?.baselineCm ?? data.current?.heightCm ?? 2.2);
+  const heightCm = Number(data.current?.heightCm ?? baselineCm);
+  const previousRisePercent = Number(data.current?.risePercent ?? 0);
+  return {
+    baselineCm,
+    heightCm,
+    previousRisePercent,
+    confidence: 0.45,
+    note: 'Fresh webcam frame captured; height reused until visual estimate is confirmed.'
+  };
+}
+
+export function buildPublishCommitMessage(timestamp = new Date().toISOString()) {
+  const text = String(timestamp).replace('T', ' ').slice(0, 16);
+  return `chore: publish starter observation ${text}`;
+}
+
+export function normalizeManualCommand(argv) {
+  const [command, ...rest] = argv;
+  const args = parseArgs(rest);
+
+  if (command === 'fed') {
+    return {
+      type: 'fed',
+      baselineCm: parseOptionalNumber(args.baseline),
+      title: 'Fed.',
+      note: args.note ?? 'Simon reset the baseline after feeding.'
+    };
+  }
+
+  if (command === 'baseline') {
+    const baselineCm = parseOptionalNumber(args.baseline ?? rest.find((item) => !item.startsWith('--')));
+    return {
+      type: 'baseline',
+      baselineCm,
+      title: 'Baseline set.',
+      note: `Baseline set to ${baselineCm}cm.`
+    };
+  }
+
+  if (command === 'note') {
+    const note = args.note ?? rest.join(' ');
+    return {
+      type: 'note',
+      title: args.title ?? 'Manual note.',
+      note
+    };
+  }
+
+  throw new Error('Usage: manual fed --baseline 2.2 --note "..." | manual baseline 2.2 | manual note "..."');
+}
+
+function parseArgs(argv) {
+  const args = {};
+  const positionals = [];
+  for (let i = 0; i < argv.length; i += 1) {
+    const item = argv[i];
+    if (!item.startsWith('--')) {
+      positionals.push(item);
+      continue;
+    }
+    const key = item.slice(2);
+    args[key] = argv[i + 1];
+    i += 1;
+  }
+  if (positionals.length) args._ = positionals;
+  return args;
+}
+
+function parseOptionalNumber(value) {
+  if (value === undefined || value === null || value === '') return undefined;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : undefined;
+}

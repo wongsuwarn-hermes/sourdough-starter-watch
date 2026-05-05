@@ -1,4 +1,5 @@
 node_modules/
 .DS_Store
+logs/
 public/photos/*
 !public/photos/starter.jpg

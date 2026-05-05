@@ -8,8 +8,14 @@
     "build": "node scripts/build-site.js",
     "serve": "python3 -m http.server 8776 -d public",
     "capture": "scripts/capture-webcam.sh",
-    "fed": "node scripts/record-event.js --type fed",
-    "record": "node scripts/record-observation.js"
+    "cycle": "scripts/publish-cycle.sh",
+    "start:auto": "scripts/start-terminal-automation.sh",
+    "capture:terminal": "open -a Terminal scripts/terminal-capture-once.sh",
+    "fed": "node scripts/manual.js fed",
+    "baseline": "node scripts/manual.js baseline",
+    "note": "node scripts/manual.js note",
+    "record": "node scripts/record-observation.js",
+    "reading": "node scripts/record-reading.js"
   },
   "devDependencies": {}
 }

@@ -5,14 +5,54 @@
 From this project directory:
 
 ```bash
+# Fresh frame; works when run from the Terminal.app session with Camera permission.
 npm run capture
-npm run record -- --rise 68 --phase rising --confidence 0.74 --image public/photos/captures/example.jpg --note "The starter is rising with visible activity."
-npm run fed -- --note "Fed 1:2:2; baseline reset."
+
+# One full cycle: capture → record conservative reading → test → build → commit → push.
+npm run cycle
+
+# Start a visible Terminal loop. Default cadence is hourly; close the Terminal window to stop.
+npm run start:auto
+
+# Manual starter events.
+npm run fed -- --baseline 2.2 --note "Fed 1:1:1; rubber band reset to true surface."
+npm run baseline -- 2.2
+npm run note -- "Moved jar away from glare."
+
+# Calibrated visual reading when Simon/Hermes has a height estimate in cm.
+npm run reading -- --height-cm 2.8 --baseline-cm 2.2 --confidence 0.7 --image public/photos/starter.jpg --note "Bulk surface is around 2.8cm; glare on right side."
+
 npm run build
 npm run serve
 ```
 
-## Camera troubleshooting
+## What is automated now
+
+The site supports three layers:
+
+1. **Camera capture** — `scripts/capture-webcam.sh` captures a timestamped frame and updates `public/photos/starter.jpg`.
+2. **Calibrated reading** — `scripts/record-reading.js` converts `heightCm` and `baselineCm` into rise %, phase, confidence and next-check cadence.
+3. **Publishing** — `scripts/publish-cycle.sh` runs tests/build, commits the changed data/photo/site, and pushes to GitHub Pages.
+
+By default, the publish cycle is conservative: if no confirmed height estimate is supplied, it reuses the last known height and records a low-confidence note rather than pretending to know the rise. Set these environment variables before `npm run cycle` when a visual estimate is available:
+
+```bash
+SOURDOUGH_HEIGHT_CM=2.8 SOURDOUGH_BASELINE_CM=2.2 SOURDOUGH_CONFIDENCE=0.7 npm run cycle
+```
+
+## Camera permission note
+
+macOS currently grants Camera access to Terminal.app/user-session commands, while Hermes' non-GUI tool shell can still fail to receive frames. If direct capture fails but Terminal capture works, run the capture/publish loop through Terminal.app:
+
+```bash
+npm run start:auto
+```
+
+or trigger one Terminal capture:
+
+```bash
+npm run capture:terminal
+```
 
 If `npm run capture` times out:
 
@@ -24,7 +64,7 @@ If `npm run capture` times out:
    ```bash
    pkill -9 -f 'ffmpeg .*avfoundation'
    ```
-3. Confirm camera permission for the terminal/Hermes host app:
+3. Confirm camera permission for Terminal/Hermes host app:
    ```bash
    open 'x-apple.systempreferences:com.apple.preference.security?Privacy_Camera'
    ```
@@ -35,13 +75,23 @@ If `npm run capture` times out:
 
 Public site copy should not name exact private hardware models.
 
-## Planned monitor loop
+## Recommended hourly operation
 
-A Hermes scheduled job will:
+For now, use Terminal/user-session automation because it matches the permission context that successfully captures photos:
 
-1. Capture a new image.
-2. Analyse the image conservatively.
-3. Record rise %, phase, confidence and note.
-4. Rebuild the static site.
-5. Send Telegram only for important changes: likely peak, collapse/falling, camera blocked, or unusually inactive after feeding.
-6. Later, push the generated site to GitHub/Cloudflare when authentication is configured.
+```bash
+SOURDOUGH_INTERVAL_SECONDS=3600 npm run start:auto
+```
+
+This keeps a visible Terminal window open. It is intentionally easy to stop: close the window or press `Ctrl-C`.
+
+## Hermes-assisted visual reads
+
+For higher-quality readings, Hermes should inspect the latest frame and then run:
+
+```bash
+npm run reading -- --height-cm <estimated-current-surface-cm> --baseline-cm <rubber-band-baseline-cm> --confidence <0-1> --image public/photos/starter.jpg --note "Short visual rationale and uncertainty."
+npm run build
+```
+
+Be conservative. Do not treat old side residue, glare, or the rubber band as the active starter surface. Prefer lower confidence and a plain-language caveat when the view is ambiguous.

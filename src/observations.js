@@ -16,14 +16,18 @@ export function addObservation(data, rawObservation) {
 export function addEvent(data, rawEvent) {
   const event = normalizeEvent(rawEvent);
   const events = [event, ...(data.events ?? [])];
-  const base = { ...data, events };
+  const starter = normalizeStarterForEvent(data.starter ?? {}, rawEvent);
+  const base = { ...data, starter, events };
 
   if (rawEvent.type === 'fed') {
+    const baselineCm = parseOptionalNumber(rawEvent.baselineCm ?? starter.baselineCm);
     return {
       ...base,
       current: {
         ...(data.current ?? {}),
         timestamp: rawEvent.time ?? new Date().toISOString(),
+        baselineCm,
+        heightCm: baselineCm,
         risePercent: 0,
         phase: 'fed',
         confidence: 1,
@@ -48,6 +52,8 @@ export function deriveCurrentFromObservation(observation) {
     phase,
     confidence,
     image: observation.image,
+    baselineCm: observation.baselineCm,
+    heightCm: observation.heightCm,
     mood: moodForPhase(phase, risePercent),
     note: observation.note ?? noteForPhase(phase),
     nextCheckMinutes: nextCadenceMinutes({ phase, confidence, risePercent })
@@ -58,7 +64,7 @@ function normalizeObservation(raw) {
   const timestamp = raw.timestamp ?? new Date().toISOString();
   const confidence = clamp(Number(raw.confidence ?? 0.5), 0, 1);
 
-  return {
+  const observation = {
     timestamp,
     time: formatTime(timestamp),
     risePercent: Math.round(Number(raw.risePercent ?? 0)),
@@ -67,16 +73,37 @@ function normalizeObservation(raw) {
     image: raw.image ?? 'photos/starter.jpg',
     note: raw.note ?? noteForPhase(raw.phase)
   };
+  const baselineCm = parseOptionalNumber(raw.baselineCm);
+  const heightCm = parseOptionalNumber(raw.heightCm);
+  if (baselineCm !== undefined) observation.baselineCm = baselineCm;
+  if (heightCm !== undefined) observation.heightCm = heightCm;
+  return observation;
 }
 
 function normalizeEvent(raw) {
   const timestamp = raw.time ?? new Date().toISOString();
-  return {
+  const event = {
     time: formatTime(timestamp),
     title: raw.title ?? 'Manual note.',
     note: raw.note ?? '',
     type: raw.type ?? 'note'
   };
+  const baselineCm = parseOptionalNumber(raw.baselineCm);
+  if (baselineCm !== undefined) event.baselineCm = baselineCm;
+  return event;
+}
+
+function normalizeStarterForEvent(starter, rawEvent) {
+  if (!['fed', 'baseline'].includes(rawEvent.type)) return starter;
+  const baselineCm = parseOptionalNumber(rawEvent.baselineCm);
+  if (baselineCm === undefined) return starter;
+  return { ...starter, baselineCm };
+}
+
+function parseOptionalNumber(value) {
+  if (value === undefined || value === null || value === '') return undefined;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : undefined;
 }
 
 function nextCadenceMinutes({ phase, confidence, risePercent }) {

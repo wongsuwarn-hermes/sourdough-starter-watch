@@ -8,6 +8,7 @@ mkdir -p "$OUT_DIR"
 STAMP="$(date +%Y%m%d_%H%M%S)"
 OUT="$OUT_DIR/$STAMP.jpg"
 LATEST="$ROOT/public/photos/starter.jpg"
+PUBLIC_CROP="${SOURDOUGH_PUBLIC_CROP:-560:1080:700:0}"
 
 # Clear any stale AVFoundation capture that might be holding the camera.
 pkill -f "ffmpeg .*avfoundation.*$DEVICE_INDEX:none" 2>/dev/null || true
@@ -38,6 +39,11 @@ if [ ! -s "$OUT" ]; then
   exit 1
 fi
 
-cp "$OUT" "$LATEST"
+if [ "$PUBLIC_CROP" = "none" ]; then
+  cp "$OUT" "$LATEST"
+else
+  ffmpeg -hide_banner -loglevel error -y -i "$OUT" -vf "crop=$PUBLIC_CROP" "$LATEST"
+fi
 file "$OUT"
+file "$LATEST"
 echo "$OUT"
