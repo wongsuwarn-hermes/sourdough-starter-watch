@@ -1,9 +1,9 @@
 import { readFile, writeFile } from 'node:fs/promises';
-import { dirname, join, relative } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { addObservation } from '../src/observations.js';
 import { buildObservationFromReading } from '../src/estimation.js';
-import { defaultReadingFromData, localIsoTimestamp } from '../src/automation.js';
+import { defaultReadingFromData, localIsoTimestamp, normalizeImagePath } from '../src/automation.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const dataPath = join(root, 'data', 'observations.json');
@@ -19,19 +19,11 @@ function parseArgs(argv) {
   return args;
 }
 
-function normalizeImagePath(image) {
-  const publicDir = join(root, 'public');
-  if (!image) return 'photos/starter.jpg';
-  if (image.startsWith('public/')) return image.slice('public/'.length);
-  if (image.startsWith('/')) return relative(publicDir, image);
-  return image;
-}
-
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const data = JSON.parse(await readFile(dataPath, 'utf8'));
   const fallback = defaultReadingFromData(data);
-  const image = normalizeImagePath(args.image ?? 'public/photos/starter.jpg');
+  const image = normalizeImagePath(args.image ?? 'public/photos/starter.jpg', join(root, 'public'));
 
   const reading = {
     ...fallback,

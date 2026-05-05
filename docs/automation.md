@@ -12,6 +12,7 @@ npm run capture
 npm run cycle
 
 # Start a visible Terminal loop. Default cadence is hourly; close the Terminal window to stop.
+# Safe default: captures/builds locally but does not commit/push unless SOURDOUGH_PUBLISH=1 is set.
 npm run start:auto
 
 # Manual starter events.
@@ -32,12 +33,15 @@ The site supports three layers:
 
 1. **Camera capture** — `scripts/capture-webcam.sh` captures a timestamped frame and updates `public/photos/starter.jpg`.
 2. **Calibrated reading** — `scripts/record-reading.js` converts `heightCm` and `baselineCm` into rise %, phase, confidence and next-check cadence.
-3. **Publishing** — `scripts/publish-cycle.sh` runs tests/build, commits the changed data/photo/site, and pushes to GitHub Pages.
+3. **Publishing** — `scripts/publish-cycle.sh` runs tests/build and stops by default before committing or pushing. Set `SOURDOUGH_PUBLISH=1` only when you intentionally want the cycle to publish. It also skips `git pull` by default so remote code is not silently pulled and executed with local Camera permission; set `SOURDOUGH_ALLOW_PULL=1` only when you intentionally want to pull first.
 
 By default, the publish cycle is conservative: if no confirmed height estimate is supplied, it reuses the last known height and records a low-confidence note rather than pretending to know the rise. Set these environment variables before `npm run cycle` when a visual estimate is available:
 
 ```bash
 SOURDOUGH_HEIGHT_CM=2.8 SOURDOUGH_BASELINE_CM=2.2 SOURDOUGH_CONFIDENCE=0.7 npm run cycle
+
+# Publish intentionally after a successful local cycle.
+SOURDOUGH_PUBLISH=1 npm run cycle
 ```
 
 ## Camera permission note
@@ -81,6 +85,12 @@ For now, use Terminal/user-session automation because it matches the permission 
 
 ```bash
 SOURDOUGH_INTERVAL_SECONDS=3600 npm run start:auto
+```
+
+To publish automatically from that visible loop, opt in explicitly:
+
+```bash
+SOURDOUGH_PUBLISH=1 SOURDOUGH_INTERVAL_SECONDS=3600 npm run start:auto
 ```
 
 This keeps a visible Terminal window open. It is intentionally easy to stop: close the window or press `Ctrl-C`.

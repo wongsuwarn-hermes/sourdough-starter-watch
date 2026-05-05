@@ -1,3 +1,5 @@
+import { isAbsolute, relative } from 'node:path';
+
 export function defaultReadingFromData(data) {
   const baselineCm = Number(data.starter?.baselineCm ?? data.current?.baselineCm ?? data.current?.heightCm ?? 2.2);
   const heightCm = Number(data.current?.heightCm ?? baselineCm);
@@ -58,6 +60,31 @@ export function normalizeManualCommand(argv) {
   }
 
   throw new Error('Usage: manual fed --baseline 2.2 --note "..." | manual baseline 2.2 | manual note "..."');
+}
+
+export function normalizeImagePath(image, publicDir = 'public') {
+  if (!image) return 'photos/starter.jpg';
+  const value = String(image);
+  if (/^[a-z][a-z0-9+.-]*:/i.test(value)) {
+    throw new Error('Unsafe image path: external URLs are not allowed');
+  }
+
+  const relativePath = value.startsWith('public/')
+    ? value.slice('public/'.length)
+    : isAbsolute(value)
+      ? relative(publicDir, value)
+      : value;
+
+  const normalized = relativePath.replaceAll('\\\\', '/');
+  if (
+    normalized.startsWith('../') ||
+    normalized === '..' ||
+    normalized.startsWith('/') ||
+    !normalized.startsWith('photos/')
+  ) {
+    throw new Error('Unsafe image path: must stay under public/photos');
+  }
+  return normalized;
 }
 
 function parseArgs(argv) {

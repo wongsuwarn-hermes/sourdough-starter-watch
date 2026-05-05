@@ -6,6 +6,8 @@ LOG_DIR="$ROOT/logs"
 mkdir -p "$LOG_DIR"
 LOG="$LOG_DIR/publish-cycle.log"
 DRY_RUN="${SOURDOUGH_DRY_RUN:-0}"
+ALLOW_PULL="${SOURDOUGH_ALLOW_PULL:-0}"
+PUBLISH="${SOURDOUGH_PUBLISH:-0}"
 HEIGHT_CM="${SOURDOUGH_HEIGHT_CM:-}"
 BASELINE_CM="${SOURDOUGH_BASELINE_CM:-}"
 CONFIDENCE="${SOURDOUGH_CONFIDENCE:-0.45}"
@@ -15,9 +17,13 @@ cd "$ROOT"
 exec > >(tee -a "$LOG") 2>&1
 
 echo "== $(date) =="
-echo "Running sourdough publish cycle (dry_run=$DRY_RUN)"
+echo "Running sourdough publish cycle (dry_run=$DRY_RUN, publish=$PUBLISH, allow_pull=$ALLOW_PULL)"
 
-git pull --ff-only || true
+if [[ "$ALLOW_PULL" == "1" ]]; then
+  git pull --ff-only
+else
+  echo "Skipping git pull by default; set SOURDOUGH_ALLOW_PULL=1 to pull before capture."
+fi
 
 CAPTURE_OUTPUT="$(npm run --silent capture | tail -1)"
 echo "Captured: $CAPTURE_OUTPUT"
@@ -46,6 +52,12 @@ PY
 
 if [[ "$DRY_RUN" == "1" ]]; then
   echo "Dry run complete; not committing or pushing."
+  git status --short
+  exit 0
+fi
+
+if [[ "$PUBLISH" != "1" ]]; then
+  echo "Publish disabled by default; set SOURDOUGH_PUBLISH=1 to commit and push."
   git status --short
   exit 0
 fi

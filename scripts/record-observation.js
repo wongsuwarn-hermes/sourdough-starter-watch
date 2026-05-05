@@ -1,7 +1,8 @@
 import { readFile, writeFile } from 'node:fs/promises';
-import { dirname, join, relative } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { addObservation } from '../src/observations.js';
+import { normalizeImagePath } from '../src/automation.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const dataPath = join(root, 'data', 'observations.json');
@@ -25,8 +26,7 @@ async function main() {
   }
 
   const data = JSON.parse(await readFile(dataPath, 'utf8'));
-  const publicDir = join(root, 'public');
-  const imagePath = args.image.startsWith('public/') ? args.image.slice('public/'.length) : relative(publicDir, args.image);
+  const imagePath = normalizeImagePath(args.image, join(root, 'public'));
   const updated = addObservation(data, {
     timestamp: args.timestamp ?? new Date().toISOString(),
     risePercent: args.rise,

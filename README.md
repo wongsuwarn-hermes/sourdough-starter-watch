@@ -8,7 +8,7 @@ A public sourdough starter observatory: Fermentation Lab visual base, Living Sto
 - Observation data in `data/observations.json`
 - Build with `npm run build`
 - Test with `npm test`
-- Preview locally with `npm run serve`
+- Preview locally with `npm run serve` bound to `127.0.0.1` only
 - Capture webcam stills with `npm run capture`
 - Record manual feedings with `npm run fed -- --note "Fed 1:2:2; baseline reset."`
 
