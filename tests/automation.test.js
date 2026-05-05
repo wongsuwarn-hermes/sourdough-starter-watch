@@ -4,7 +4,8 @@ import {
   defaultReadingFromData,
   buildPublishCommitMessage,
   localIsoTimestamp,
-  normalizeManualCommand
+  normalizeManualCommand,
+  decideStarterWatchPlan
 } from '../src/automation.js';
 
 test('defaultReadingFromData uses baseline and last known height when no AI estimate is supplied', () => {
@@ -54,4 +55,89 @@ test('normalizeManualCommand supports fed, baseline, and note shortcuts', () => 
     title: 'Manual note.',
     note: 'Moved jar away from glare.'
   });
+});
+
+test('decideStarterWatchPlan waits until the adaptive cadence says a photo is due', () => {
+  const now = new Date('2026-05-05T10:08:00+01:00');
+  const plan = decideStarterWatchPlan({
+    current: {
+      timestamp: '2026-05-05T10:00:00+01:00',
+      phase: 'rising',
+      risePercent: 55,
+      confidence: 0.72,
+      nextCheckMinutes: 10
+    }
+  }, { now });
+
+  assert.equal(plan.photoDue, false);
+  assert.equal(plan.notifyTelegram, false);
+  assert.equal(plan.cadenceMinutes, 10);
+  assert.equal(plan.minutesUntilDue, 2);
+  assert.equal(plan.reason, 'waiting for adaptive cadence');
+});
+
+test('decideStarterWatchPlan does not send milestone Telegram before the next photo is due', () => {
+  const now = new Date('2026-05-05T10:03:00+01:00');
+  const plan = decideStarterWatchPlan({
+    current: {
+      timestamp: '2026-05-05T10:00:00+01:00',
+      phase: 'rising',
+      risePercent: 94,
+      confidence: 0.82,
+      nextCheckMinutes: 5
+    }
+  }, { now });
+
+  assert.equal(plan.photoDue, false);
+  assert.equal(plan.milestone, 'near_peak');
+  assert.equal(plan.notifyTelegram, false);
+});
+
+test('decideStarterWatchPlan allows five minute peak checks and milestone Telegram alerts', () => {
+  const now = new Date('2026-05-05T10:06:00+01:00');
+  const plan = decideStarterWatchPlan({
+    current: {
+      timestamp: '2026-05-05T10:00:00+01:00',
+      phase: 'rising',
+      risePercent: 92,
+      confidence: 0.8,
+      nextCheckMinutes: 5
+    }
+  }, { now });
+
+  assert.equal(plan.photoDue, true);
+  assert.equal(plan.cadenceMinutes, 5);
+  assert.equal(plan.notifyTelegram, true);
+  assert.equal(plan.milestone, 'near_peak');
+});
+
+test('decideStarterWatchPlan slows dormant readings but escalates low-confidence retries', () => {
+  const dormant = decideStarterWatchPlan({
+    current: {
+      timestamp: '2026-05-05T10:00:00+01:00',
+      phase: 'dormant',
+      risePercent: 2,
+      confidence: 0.75,
+      nextCheckMinutes: 60
+    }
+  }, { now: new Date('2026-05-05T10:30:00+01:00') });
+
+  assert.equal(dormant.photoDue, false);
+  assert.equal(dormant.cadenceMinutes, 60);
+  assert.equal(dormant.minutesUntilDue, 30);
+
+  const uncertain = decideStarterWatchPlan({
+    current: {
+      timestamp: '2026-05-05T10:00:00+01:00',
+      phase: 'unknown',
+      risePercent: 40,
+      confidence: 0.3,
+      nextCheckMinutes: 5
+    }
+  }, { now: new Date('2026-05-05T10:05:00+01:00') });
+
+  assert.equal(uncertain.photoDue, true);
+  assert.equal(uncertain.cadenceMinutes, 5);
+  assert.equal(uncertain.notifyTelegram, true);
+  assert.equal(uncertain.milestone, 'needs_human_check');
 });

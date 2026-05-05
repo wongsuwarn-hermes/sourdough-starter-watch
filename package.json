@@ -15,7 +15,9 @@
     "baseline": "node scripts/manual.js baseline",
     "note": "node scripts/manual.js note",
     "record": "node scripts/record-observation.js",
-    "reading": "node scripts/record-reading.js"
+    "reading": "node scripts/record-reading.js",
+    "watch:plan": "node scripts/watch-plan.js",
+    "watch:wakeup": "node scripts/watch-wakeup.js"
   },
   "devDependencies": {}
 }

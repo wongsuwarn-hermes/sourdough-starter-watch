@@ -118,7 +118,8 @@ test('renderSite uses visitor-friendly confidence and timing labels', () => {
   const html = renderSite(buildViewModel(sampleData));
 
   assert.match(html, /<span>Read confidence<\/span><b>74%<\/b><small>visual read certainty<\/small>/);
-  assert.match(html, /<span>Next photo<\/span><b>10m<\/b><small>planned check-in<\/small>/);
+  assert.match(html, /<span>Watch cadence<\/span><b>10m<\/b><small>checks adjust automatically<\/small>/);
+  assert.doesNotMatch(html, /<span>Next photo<\/span>/);
   assert.doesNotMatch(html, /<span>Estimate<\/span>/);
   assert.doesNotMatch(html, /<span>AI conf\.<\/span>/);
   assert.doesNotMatch(html, /<span>Next<\/span>/);

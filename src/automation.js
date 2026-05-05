@@ -87,6 +87,52 @@ export function normalizeImagePath(image, publicDir = 'public') {
   return normalized;
 }
 
+export function decideStarterWatchPlan(data, { now = new Date() } = {}) {
+  const current = data.current ?? {};
+  const phase = String(current.phase ?? 'unknown').toLowerCase();
+  const confidence = Number(current.confidence ?? 0);
+  const risePercent = Math.round(Number(current.risePercent ?? 0));
+  const lastTimestamp = Date.parse(current.timestamp ?? '');
+  const cadenceMinutes = adaptiveCadenceMinutes({ phase, confidence, risePercent });
+  const elapsedMinutes = Number.isFinite(lastTimestamp)
+    ? Math.max(0, Math.floor((now.getTime() - lastTimestamp) / 60_000))
+    : Number.POSITIVE_INFINITY;
+  const minutesUntilDue = Number.isFinite(elapsedMinutes)
+    ? Math.max(0, cadenceMinutes - elapsedMinutes)
+    : 0;
+  const photoDue = !Number.isFinite(elapsedMinutes) || elapsedMinutes >= cadenceMinutes;
+  const milestone = milestoneForState({ phase, confidence, risePercent });
+
+  return {
+    photoDue,
+    notifyTelegram: photoDue && Boolean(milestone),
+    milestone,
+    cadenceMinutes,
+    elapsedMinutes,
+    minutesUntilDue,
+    reason: photoDue ? 'adaptive cadence due' : 'waiting for adaptive cadence'
+  };
+}
+
+function adaptiveCadenceMinutes({ phase, confidence, risePercent }) {
+  if (confidence < 0.45) return 5;
+  if (phase === 'peaking' || phase === 'peak') return 5;
+  if (phase === 'falling') return 5;
+  if (phase === 'rising' && risePercent >= 90) return 5;
+  if (phase === 'rising') return 10;
+  if (phase === 'fed') return 30;
+  if (phase === 'dormant') return 60;
+  return 30;
+}
+
+function milestoneForState({ phase, confidence, risePercent }) {
+  if (confidence < 0.45) return 'needs_human_check';
+  if (phase === 'falling') return 'falling_after_peak';
+  if (phase === 'peaking' || phase === 'peak') return 'peak_reached';
+  if (phase === 'rising' && risePercent >= 90) return 'near_peak';
+  return null;
+}
+
 function parseArgs(argv) {
   const args = {};
   const positionals = [];
