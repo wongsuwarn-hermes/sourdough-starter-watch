@@ -94,6 +94,38 @@ test('renderSite uses visitor-friendly confidence and timing labels', () => {
   assert.doesNotMatch(html, /<span>Next<\/span>/);
 });
 
+test('renderSite draws the rise curve from actual observations and feeding events', () => {
+  const data = structuredClone(sampleData);
+  data.observations = [
+    { time: '07:30', risePercent: 0 },
+    { time: '08:45', risePercent: 25 },
+    { time: '10:15', risePercent: 80 }
+  ];
+  data.events = [
+    { time: '07:30', title: 'Fed.', note: 'Baseline reset.' }
+  ];
+  const html = renderSite(buildViewModel(data));
+
+  assert.match(html, /data-chart="actual-observations"/);
+  assert.match(html, /data-rise="80"/);
+  assert.match(html, /aria-label="10:15: \+80% rise"/);
+  assert.match(html, /07:30/);
+  assert.match(html, /10:15/);
+  assert.match(html, /class="eventMarker"/);
+  assert.match(html, /Fed\./);
+  assert.doesNotMatch(html, /curve flattening\?/);
+});
+
+test('renderSite gives the latest photo a more explanatory observation card', () => {
+  const html = renderSite(buildViewModel(sampleData));
+
+  assert.match(html, /class="photoInsight"/);
+  assert.match(html, /What to look for/);
+  assert.match(html, /Latest reading/);
+  assert.match(html, /\+68% rise/);
+  assert.match(html, /bubbles, the height line, and whether the top is domed or sinking/);
+});
+
 test('renderSite escapes user-provided event text', () => {
   const unsafe = structuredClone(sampleData);
   unsafe.events = [{ time: '13:37', title: '<script>alert(1)</script>', note: 'bubbles & <b>rise</b>' }];
