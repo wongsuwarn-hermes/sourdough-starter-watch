@@ -37,15 +37,33 @@ test('buildViewModel formats current starter status for display', () => {
   assert.equal(vm.current.image, 'photos/starter.jpg');
 });
 
-test('renderSite includes the story-mode title, Hermes log, and privacy-safe hardware copy', () => {
+test('renderSite includes the story-mode title and privacy-safe hardware copy without a public machine log', () => {
   const html = renderSite(buildViewModel(sampleData));
 
   assert.match(html, /One Jar\.<br>One Webcam\.<br>Many Bubbles\./);
   assert.match(html, /Observed by <a class="hermesLink" href="https:\/\/hermes-agent\.nousresearch\.com\/"/);
-  assert.match(html, /HERMES OBSERVATION LOG/);
   assert.match(html, /small local computer/);
+  assert.doesNotMatch(html, /HERMES OBSERVATION LOG/);
+  assert.doesNotMatch(html, /class="console"/);
+  assert.doesNotMatch(html, /peak_watch/);
   assert.doesNotMatch(html, /Mac Studio/i);
   assert.doesNotMatch(html, /OBSBOT/i);
+});
+
+test('renderSite separates the live starter story from the technical implementation area', () => {
+  const html = renderSite(buildViewModel(sampleData));
+
+  assert.match(html, /class="implementationDivider"/);
+  assert.match(html, /<span class="dividerEyebrow">Technical implementation<\/span>/);
+  assert.match(html, /<strong>Behind the Scenes<\/strong>/);
+  assert.doesNotMatch(html, /The live starter story is above/);
+  assert.doesNotMatch(html, /everything below explains/);
+
+  const momentsIndex = html.indexOf('<h3>Key moments</h3>');
+  const separatorIndex = html.indexOf('class="implementationDivider"');
+  const howIndex = html.indexOf('HOW THE WATCH WORKS');
+  assert.ok(momentsIndex < separatorIndex);
+  assert.ok(separatorIndex < howIndex);
 });
 
 test('renderSite uses an intuitive cartoon bread loaf logo instead of the old camera-eye mark', () => {
