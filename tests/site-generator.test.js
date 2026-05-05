@@ -126,6 +126,14 @@ test('renderSite gives the latest photo a more explanatory observation card', ()
   assert.match(html, /bubbles, the height line, and whether the top is domed or sinking/);
 });
 
+test('renderSite avoids mobile chart distortion by preserving SVG aspect ratio in a scrollable frame', () => {
+  const html = renderSite(buildViewModel(sampleData));
+
+  assert.match(html, /class="chartFrame"/);
+  assert.match(html, /preserveAspectRatio="xMidYMid meet"/);
+  assert.doesNotMatch(html, /preserveAspectRatio="none"/);
+});
+
 test('renderSite escapes user-provided event text', () => {
   const unsafe = structuredClone(sampleData);
   unsafe.events = [{ time: '13:37', title: '<script>alert(1)</script>', note: 'bubbles & <b>rise</b>' }];

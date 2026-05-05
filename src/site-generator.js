@@ -103,7 +103,7 @@ function chartPoints(observations) {
 function renderChart(observations = [], events = []) {
   const points = chartPoints(observations);
   if (points.length === 0) {
-    return `<svg class="chart" data-chart="actual-observations" viewBox="0 0 760 270" preserveAspectRatio="none" aria-label="starter rise over time"><text x="54" y="136" class="emptyChart">Waiting for the first reading</text></svg>`;
+    return `<div class="chartFrame"><svg class="chart" data-chart="actual-observations" viewBox="0 0 760 270" preserveAspectRatio="xMidYMid meet" aria-label="starter rise over time"><text x="54" y="136" class="emptyChart">Waiting for the first reading</text></svg></div>`;
   }
 
   const linePath = points.map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(' ');
@@ -119,7 +119,7 @@ function renderChart(observations = [], events = []) {
       return `<g class="eventMarker" transform="translate(${nearest.x.toFixed(1)} 48)"><line y1="0" y2="196"/><text x="8" y="13">${escapeHtml(event.title ?? 'Event')}</text></g>`;
     }).join('');
 
-  return `<svg class="chart" data-chart="actual-observations" viewBox="0 0 760 270" preserveAspectRatio="none" aria-label="starter rise over time"><defs><linearGradient id="riseFill2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f54e00" stop-opacity=".26"/><stop offset="100%" stop-color="#f54e00" stop-opacity="0"/></linearGradient></defs><g class="axis"><path d="M54 28H730M54 82H730M54 136H730M54 190H730M54 244H730"/><path d="M54 28V244M223 28V244M392 28V244M561 28V244M730 28V244"/></g><g class="ylabel"><text x="8" y="34">100%</text><text x="16" y="88">75%</text><text x="16" y="142">50%</text><text x="16" y="196">25%</text><text x="24" y="249">0%</text></g>${eventMarkers}<path class="area" d="${areaPath}"/><path class="line" d="${linePath}"/><g class="dots">${points.map((point, index) => `<circle data-rise="${point.rise}" aria-label="${escapeHtml(point.time)}: ${point.rise >= 0 ? '+' : ''}${point.rise}% rise" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${index === points.length - 1 ? 7 : 5}"/>`).join('')}</g><g class="xlabel">${labels.map((point) => `<text x="${point.x.toFixed(1)}" y="266">${escapeHtml(point.time)}</text>`).join('')}</g></svg>`;
+  return `<div class="chartFrame"><svg class="chart" data-chart="actual-observations" viewBox="0 0 760 270" preserveAspectRatio="xMidYMid meet" aria-label="starter rise over time"><defs><linearGradient id="riseFill2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f54e00" stop-opacity=".26"/><stop offset="100%" stop-color="#f54e00" stop-opacity="0"/></linearGradient></defs><g class="axis"><path d="M54 28H730M54 82H730M54 136H730M54 190H730M54 244H730"/><path d="M54 28V244M223 28V244M392 28V244M561 28V244M730 28V244"/></g><g class="ylabel"><text x="8" y="34">100%</text><text x="16" y="88">75%</text><text x="16" y="142">50%</text><text x="16" y="196">25%</text><text x="24" y="249">0%</text></g>${eventMarkers}<path class="area" d="${areaPath}"/><path class="line" d="${linePath}"/><g class="dots">${points.map((point, index) => `<circle data-rise="${point.rise}" aria-label="${escapeHtml(point.time)}: ${point.rise >= 0 ? '+' : ''}${point.rise}% rise" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${index === points.length - 1 ? 7 : 5}"/>`).join('')}</g><g class="xlabel">${labels.map((point) => `<text x="${point.x.toFixed(1)}" y="266">${escapeHtml(point.time)}</text>`).join('')}</g></svg></div>`;
 }
 
 function logoSvg() {
