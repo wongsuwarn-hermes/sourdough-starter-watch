@@ -5,14 +5,14 @@
     "baselineCm": 2.2
   },
   "current": {
-    "timestamp": "2026-05-05T17:07:32+01:00",
+    "timestamp": "2026-05-05T17:26:39+01:00",
     "risePercent": 50,
     "phase": "rising",
-    "confidence": 0.55,
+    "confidence": 0.65,
     "nextCheckMinutes": 10,
     "image": "photos/starter.jpg",
     "mood": "ambitious",
-    "note": "Hermes visual read: Surface appears near the 3.3 cm level, a mostly flat bubbly top just above the 3 cm mark; glare, jar curvature, residue, and streaks ignored.",
+    "note": "Hermes visual read: surface sits just above 3 cm and below 4 cm; glare and old streaks ignored.",
     "baselineCm": 2.2,
     "heightCm": 3.3,
     "source": "hermes-vision"
@@ -148,6 +148,18 @@
       "confidence": 0.55,
       "image": "photos/starter.jpg",
       "note": "Hermes visual read: Surface appears near the 3.3 cm level, a mostly flat bubbly top just above the 3 cm mark; glare, jar curvature, residue, and streaks ignored.",
+      "source": "hermes-vision",
+      "baselineCm": 2.2,
+      "heightCm": 3.3
+    },
+    {
+      "timestamp": "2026-05-05T17:26:39+01:00",
+      "time": "17:26",
+      "risePercent": 50,
+      "phase": "rising",
+      "confidence": 0.65,
+      "image": "photos/starter.jpg",
+      "note": "Hermes visual read: surface sits just above 3 cm and below 4 cm; glare and old streaks ignored.",
       "source": "hermes-vision",
       "baselineCm": 2.2,
       "heightCm": 3.3
