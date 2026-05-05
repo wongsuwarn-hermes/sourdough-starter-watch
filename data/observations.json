@@ -5,16 +5,16 @@
     "baselineCm": 2.2
   },
   "current": {
-    "timestamp": "2026-05-05T10:12:43+01:00",
-    "risePercent": 45,
+    "timestamp": "2026-05-05T11:16:32+01:00",
+    "risePercent": 55,
     "phase": "rising",
-    "confidence": 0.68,
+    "confidence": 0.72,
     "nextCheckMinutes": 10,
     "image": "photos/starter.jpg",
     "mood": "ambitious",
-    "note": "Hermes visual read: main surface just above 3 cm mark; approx 3.0-3.4 cm, phase uncertain",
+    "note": "Hermes visual read: Main surface a little above 3 cm with bubbly uneven top; plausible 3.2-3.6 cm.",
     "baselineCm": 2.2,
-    "heightCm": 3.2
+    "heightCm": 3.4
   },
   "events": [
     {
@@ -88,6 +88,17 @@
       "note": "Hermes visual read: main surface just above 3 cm mark; approx 3.0-3.4 cm, phase uncertain",
       "baselineCm": 2.2,
       "heightCm": 3.2
+    },
+    {
+      "timestamp": "2026-05-05T11:16:32+01:00",
+      "time": "11:16",
+      "risePercent": 55,
+      "phase": "rising",
+      "confidence": 0.72,
+      "image": "photos/starter.jpg",
+      "note": "Hermes visual read: Main surface a little above 3 cm with bubbly uneven top; plausible 3.2-3.6 cm.",
+      "baselineCm": 2.2,
+      "heightCm": 3.4
     }
   ]
 }
