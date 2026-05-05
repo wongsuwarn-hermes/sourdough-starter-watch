@@ -57,12 +57,21 @@ test('renderSite uses an intuitive cartoon bread loaf logo instead of the old ca
   assert.doesNotMatch(html, /c3\.6-5\.2 8\.3-7\.8 14-7\.8/);
 });
 
-test('renderSite wraps the live webcam image in a mobile-friendly snapshot viewport', () => {
+test('renderSite wraps the live webcam image in a polished snapshot viewport', () => {
   const html = renderSite(buildViewModel(sampleData));
 
   assert.match(html, /class="panel photo snapshotCard"/);
   assert.match(html, /class="snapshotViewport"/);
+  assert.match(html, /class="snapshotBackdrop"/);
+  assert.match(html, /aria-hidden="true"/);
   assert.match(html, /class="starterSnapshot"/);
+});
+
+test('renderSite gives the current mood an explicit status label', () => {
+  const html = renderSite(buildViewModel(sampleData));
+
+  assert.match(html, /<span class="storylineLabel">Current status<\/span>/);
+  assert.match(html, /<b>Today’s mood: ambitious\.<\/b>/);
 });
 
 test('renderSite links Hermes only in the website header', () => {
@@ -111,9 +120,42 @@ test('renderSite draws the rise curve from actual observations and feeding event
   assert.match(html, /aria-label="10:15: \+80% rise"/);
   assert.match(html, /07:30/);
   assert.match(html, /10:15/);
-  assert.match(html, /class="eventMarker"/);
-  assert.match(html, /Fed\./);
+  assert.doesNotMatch(html, /class="chartDot cue-/);
+  assert.doesNotMatch(html, /data-event-cue="1" data-rise/);
+  assert.doesNotMatch(html, /class="eventMarker"/);
   assert.doesNotMatch(html, /curve flattening\?/);
+});
+
+test('renderSite groups diary events as annotations inside the rise curve panel', () => {
+  const data = structuredClone(sampleData);
+  data.events = [
+    { time: '10:01', title: 'Baseline set.', note: 'Baseline set to 2.2cm.' },
+    { time: '08:10', title: 'Fed.', note: 'Simon reset the baseline.' },
+    { time: '09:20', title: 'First bubbles.', note: 'Suspicious optimism detected.' }
+  ];
+  const html = renderSite(buildViewModel(data));
+
+  assert.match(html, /class="panel curvePanel"/);
+  assert.match(html, /class="curveAnnotations"/);
+  assert.match(html, /<h3>Key moments<\/h3>/);
+  assert.doesNotMatch(html, /<h3>Diary annotations<\/h3>/);
+  assert.doesNotMatch(html, /data-event-cue="1"/);
+  assert.doesNotMatch(html, /class="chartDot cue-/);
+  assert.match(html, /data-event-time="08:10"/);
+  assert.match(html, /data-event-time="09:20"/);
+  assert.match(html, /data-event-time="10:01"/);
+  assert.doesNotMatch(html, /class="eventAccent/);
+  assert.doesNotMatch(html, /class="cue-/);
+  assert.match(html, /<span>notes from today’s rise<\/span>/);
+  assert.doesNotMatch(html, /class="eventCue/);
+  assert.doesNotMatch(html, /aria-hidden="true">1<\/span>/);
+  assert.doesNotMatch(html, /<section class="diary">/);
+
+  const fedIndex = html.indexOf('data-event-time="08:10"');
+  const bubblesIndex = html.indexOf('data-event-time="09:20"');
+  const baselineIndex = html.indexOf('data-event-time="10:01"');
+  assert.ok(fedIndex < bubblesIndex);
+  assert.ok(bubblesIndex < baselineIndex);
 });
 
 test('renderSite gives the latest photo a more explanatory observation card', () => {

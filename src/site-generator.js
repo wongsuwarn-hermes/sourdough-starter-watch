@@ -61,13 +61,29 @@ function renderMetric(label, value, helper = '') {
   return `<div class="metric"><span>${escapeHtml(label)}</span><b>${escapeHtml(value)}</b>${helperHtml}</div>`;
 }
 
-function renderEvents(events) {
-  return events.map((event) => `
-    <article class="entry">
+function sortedEvents(events) {
+  return [...events].sort((a, b) => {
+    const aMinutes = timeToMinutes(a.time);
+    const bMinutes = timeToMinutes(b.time);
+    if (!Number.isFinite(aMinutes) && !Number.isFinite(bMinutes)) return 0;
+    if (!Number.isFinite(aMinutes)) return 1;
+    if (!Number.isFinite(bMinutes)) return -1;
+    return aMinutes - bMinutes;
+  });
+}
+
+function renderCurveAnnotations(events) {
+  const annotations = sortedEvents(events);
+  if (annotations.length === 0) return '';
+
+  return `<div class="curveAnnotations"><div class="annotationHead"><h3>Key moments</h3><span>notes from today’s rise</span></div><div class="annotationList">${annotations.map((event, index) => {
+    const cue = index + 1;
+    return `
+    <article class="annotation" data-event-time="${escapeHtml(event.time)}">
       <time>${escapeHtml(event.time)}</time>
-      <strong>${escapeHtml(event.title)}</strong>
-      <p>${escapeHtml(event.note)}</p>
-    </article>`).join('');
+      <div><strong>${escapeHtml(event.title)}</strong><p>${escapeHtml(event.note)}</p></div>
+    </article>`;
+  }).join('')}</div></div>`;
 }
 
 function timeToMinutes(time) {
@@ -126,18 +142,10 @@ function renderChartSvg({ observations, events, width, height, className, layout
   const areaPath = `${linePath} L${points.at(-1).x.toFixed(1)} ${layout.bottom} L${points[0].x.toFixed(1)} ${layout.bottom} Z`;
   const labels = [points[0], points[Math.floor(points.length / 2)], points.at(-1)]
     .filter((point, index, array) => array.findIndex((candidate) => candidate.time === point.time) === index);
-  const eventMarkers = events
-    .filter((event) => /fed|baseline/i.test(`${event.title ?? ''} ${event.type ?? ''}`))
-    .map((event) => {
-      const eventMinutes = timeToMinutes(event.time);
-      if (!Number.isFinite(eventMinutes)) return '';
-      const nearest = points.reduce((best, point) => Math.abs(point.minutes - eventMinutes) < Math.abs(best.minutes - eventMinutes) ? point : best, points[0]);
-      return `<g class="eventMarker" transform="translate(${nearest.x.toFixed(1)} ${layout.top})"><line y1="0" y2="${layout.bottom - layout.top}"/><text x="8" y="15">${escapeHtml(event.title ?? 'Event')}</text></g>`;
-    }).join('');
   const labelY = height - 12;
   const yLabelX = Math.max(4, layout.left - 46);
 
-  return `<svg class="chart ${className}" data-chart="actual-observations" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" aria-label="starter rise over time"><defs><linearGradient id="riseFill2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f54e00" stop-opacity=".26"/><stop offset="100%" stop-color="#f54e00" stop-opacity="0"/></linearGradient></defs>${axisMarkup(layout)}<g class="ylabel"><text x="${yLabelX}" y="${layout.top + 6}">100%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .25 + 6}">75%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .5 + 6}">50%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .75 + 6}">25%</text><text x="${yLabelX + 8}" y="${layout.bottom + 4}">0%</text></g>${eventMarkers}<path class="area" d="${areaPath}"/><path class="line" d="${linePath}"/><g class="dots">${points.map((point, index) => `<circle data-rise="${point.rise}" aria-label="${escapeHtml(point.time)}: ${point.rise >= 0 ? '+' : ''}${point.rise}% rise" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${index === points.length - 1 ? 7 : 5}"/>`).join('')}</g><g class="xlabel">${labels.map((point, index) => {
+  return `<svg class="chart ${className}" data-chart="actual-observations" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" aria-label="starter rise over time"><defs><linearGradient id="riseFill2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f54e00" stop-opacity=".26"/><stop offset="100%" stop-color="#f54e00" stop-opacity="0"/></linearGradient></defs>${axisMarkup(layout)}<g class="ylabel"><text x="${yLabelX}" y="${layout.top + 6}">100%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .25 + 6}">75%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .5 + 6}">50%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .75 + 6}">25%</text><text x="${yLabelX + 8}" y="${layout.bottom + 4}">0%</text></g><path class="area" d="${areaPath}"/><path class="line" d="${linePath}"/><g class="dots">${points.map((point, index) => `<circle class="chartDot" data-rise="${point.rise}" aria-label="${escapeHtml(point.time)}: ${point.rise >= 0 ? '+' : ''}${point.rise}% rise" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${index === points.length - 1 ? 7 : 5}"/>`).join('')}</g><g class="xlabel">${labels.map((point, index) => {
     const anchor = index === 0 ? 'start' : index === labels.length - 1 ? 'end' : 'middle';
     return `<text text-anchor="${anchor}" x="${point.x.toFixed(1)}" y="${labelY}">${escapeHtml(point.time)}</text>`;
   }).join('')}</g></svg>`;
@@ -160,9 +168,8 @@ export function renderSite(vm) {
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(vm.title)}</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,650;9..144,800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css"></head><body><div class="wrap"><header class="topbar"><div class="brand"><div class="logo" aria-hidden="true">${logoSvg()}</div><div>${escapeHtml(vm.title)}</div></div><div class="navpills"><span class="pill dark">FERMENTATION LAB · STORY MODE</span><span class="pill orange">Observed by ${hermesLink()}</span></div></header>
-<main><section class="hero"><div class="panel heroCopy"><span class="tag">${escapeHtml(vm.starterName)} · PUBLIC OBSERVATORY</span><h1>${titleLines}</h1><p class="sub">A living fermentation experiment watched by a webcam and narrated by Hermes. The agent checks the starter, estimates its rise, writes the log, and pings Telegram when the jar does something worth noticing.</p><div class="storyline"><b>Today’s mood: ${escapeHtml(current.mood)}.</b> ${escapeHtml(current.note)} Hermes has armed peak watch, which is less dramatic than it sounds — but only slightly.</div><div class="metrics">${renderMetric('Rise', current.riseLabel)}${renderMetric('Stage', current.phaseLabel, 'starter activity')}${renderMetric('Estimate', current.confidenceLabel, 'how sure we are')}${renderMetric('Next photo', current.nextLabel, 'planned check-in')}</div></div><div class="panel photo snapshotCard"><div class="snapshotViewport"><img class="starterSnapshot" src="${escapeHtml(current.image)}" alt="latest webcam view of sourdough starter"></div><div class="photoOverlay"><div><strong>Latest webcam frame</strong><small>Actual camera view used for estimation</small></div><div><small>${escapeHtml(formatTime(current.timestamp))} · webcam</small></div></div><div class="photoInsight"><div><strong>Latest reading</strong><b>${escapeHtml(current.riseLabel)} rise</b></div><div><strong>What to look for</strong><span>bubbles, the height line, and whether the top is domed or sinking</span></div></div></div></section>
-<section class="grid"><div class="panel" style="padding:18px"><div class="sectionHead"><h2>Today’s rise curve</h2><span class="pill">actual readings vs. baseline</span></div>${renderChart(vm.observations, vm.events)}</div><div class="panel"><div style="padding:18px 18px 0"><span class="tag">HERMES OBSERVATION LOG</span></div><div class="agent"><h2>The agent is part of the story.</h2><p>Friends should be able to see not just the starter, but the little machine of observation around it.</p><div class="console"><span class="ok">${escapeHtml(formatTime(current.timestamp))}</span> image captured<br><span class="ai">${escapeHtml(formatTime(current.timestamp))}</span> Hermes estimates rise: ${escapeHtml(current.riseLabel)}<br><span class="ai">${escapeHtml(formatTime(current.timestamp))}</span> stage inferred: ${escapeHtml(current.phaseLabel)}<br><span class="warn">alert</span> peak_watch = armed<br><span class="ok">next</span> capture scheduled: ${escapeHtml(current.nextLabel)}<br><span class="ai">telegram</span> alert only if curve flattens</div></div></div></section>
-<section class="diary">${renderEvents(vm.events)}</section>
+<main><section class="hero"><div class="panel heroCopy"><span class="tag">${escapeHtml(vm.starterName)} · PUBLIC OBSERVATORY</span><h1>${titleLines}</h1><p class="sub">A living fermentation experiment watched by a webcam and narrated by Hermes. The agent checks the starter, estimates its rise, writes the log, and pings Telegram when the jar does something worth noticing.</p><div class="storyline"><span class="storylineLabel">Current status</span><b>Today’s mood: ${escapeHtml(current.mood)}.</b> ${escapeHtml(current.note)} Hermes has armed peak watch, which is less dramatic than it sounds — but only slightly.</div><div class="metrics">${renderMetric('Rise', current.riseLabel)}${renderMetric('Stage', current.phaseLabel, 'starter activity')}${renderMetric('Estimate', current.confidenceLabel, 'how sure we are')}${renderMetric('Next photo', current.nextLabel, 'planned check-in')}</div></div><div class="panel photo snapshotCard"><div class="snapshotViewport"><img class="snapshotBackdrop" src="${escapeHtml(current.image)}" alt="" aria-hidden="true"><img class="starterSnapshot" src="${escapeHtml(current.image)}" alt="latest webcam view of sourdough starter"></div><div class="photoOverlay"><div><strong>Latest webcam frame</strong><small>Actual camera view used for estimation</small></div><div><small>${escapeHtml(formatTime(current.timestamp))} · webcam</small></div></div><div class="photoInsight"><div><strong>Latest reading</strong><b>${escapeHtml(current.riseLabel)} rise</b></div><div><strong>What to look for</strong><span>bubbles, the height line, and whether the top is domed or sinking</span></div></div></div></section>
+<section class="grid"><div class="panel curvePanel"><div class="sectionHead"><h2>Today’s rise curve</h2><span class="pill">actual readings vs. baseline</span></div>${renderChart(vm.observations, vm.events)}${renderCurveAnnotations(vm.events)}</div><div class="panel"><div style="padding:18px 18px 0"><span class="tag">HERMES OBSERVATION LOG</span></div><div class="agent"><h2>The agent is part of the story.</h2><p>Friends should be able to see not just the starter, but the little machine of observation around it.</p><div class="console"><span class="ok">${escapeHtml(formatTime(current.timestamp))}</span> image captured<br><span class="ai">${escapeHtml(formatTime(current.timestamp))}</span> Hermes estimates rise: ${escapeHtml(current.riseLabel)}<br><span class="ai">${escapeHtml(formatTime(current.timestamp))}</span> stage inferred: ${escapeHtml(current.phaseLabel)}<br><span class="warn">alert</span> peak_watch = armed<br><span class="ok">next</span> capture scheduled: ${escapeHtml(current.nextLabel)}<br><span class="ai">telegram</span> alert only if curve flattens</div></div></div></section>
 <section class="how"><div class="panel howcopy"><span class="tag">HOW THE WATCH WORKS</span><div class="quote">Domestic science, narrated by an AI agent.</div><p class="note">Every few minutes, a small local computer captures a webcam image. Hermes estimates the starter’s current height, compares it with previous readings, records uncertainty, updates the website, and sends Telegram alerts for meaningful events. The AI can be wrong — glass, residue and lighting are tricky — so Simon can correct key moments like feeding or baseline resets.</p></div><div class="panel diagram"><div class="node"><b>Webcam</b><span>Fixed view of the jar, ideally square-on with a visible baseline.</span></div><div class="arrow">↓ photo capture</div><div class="node"><b>Local computer</b><span>Runs the scheduler, stores photos, and generates public site data.</span></div><div class="arrow">↓ image + context</div><div class="node"><b>Hermes AI</b><span>Estimates rise, labels stage, writes notes, decides whether to alert.</span></div><div class="arrow">↓ publish + notify</div><div class="node"><b>Website</b><span>Public story dashboard for friends; richer lab/debug view for Simon later.</span></div></div></section></main><div class="footer">Prototype: Fermentation Lab visual base × Living Storybook personality × AI-agent transparency</div></div></body></html>`;
 }
 
