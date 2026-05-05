@@ -5,16 +5,16 @@
     "baselineCm": 2.2
   },
   "current": {
-    "timestamp": "2026-05-05T18:46:49+01:00",
-    "risePercent": 55,
+    "timestamp": "2026-05-05T18:56:55+01:00",
+    "risePercent": 45,
     "phase": "falling",
-    "confidence": 0.65,
+    "confidence": 0.68,
     "nextCheckMinutes": 30,
     "image": "photos/starter.jpg",
     "mood": "settling",
-    "note": "Hermes visual read: The active current surface appears conservatively around 3.4 cm, not counting wall residue or glare.",
+    "note": "Hermes visual read: Current starter surface is conservatively estimated at about 3.2 cm, ignoring glare, residue, bubbles, reflections, and old streaks.",
     "baselineCm": 2.2,
-    "heightCm": 3.4,
+    "heightCm": 3.2,
     "source": "hermes-vision"
   },
   "events": [
@@ -235,6 +235,18 @@
       "source": "hermes-vision",
       "baselineCm": 2.2,
       "heightCm": 3.4
+    },
+    {
+      "timestamp": "2026-05-05T18:56:55+01:00",
+      "time": "18:56",
+      "risePercent": 45,
+      "phase": "falling",
+      "confidence": 0.68,
+      "image": "photos/starter.jpg",
+      "note": "Hermes visual read: Current starter surface is conservatively estimated at about 3.2 cm, ignoring glare, residue, bubbles, reflections, and old streaks.",
+      "source": "hermes-vision",
+      "baselineCm": 2.2,
+      "heightCm": 3.2
     }
   ]
 }
