@@ -5,16 +5,16 @@
     "baselineCm": 2.2
   },
   "current": {
-    "timestamp": "2026-05-05T18:20:53+01:00",
-    "risePercent": 50,
-    "phase": "falling",
+    "timestamp": "2026-05-05T18:33:52+01:00",
+    "risePercent": 64,
+    "phase": "rising",
     "confidence": 0.72,
-    "nextCheckMinutes": 30,
+    "nextCheckMinutes": 10,
     "image": "photos/starter.jpg",
-    "mood": "settling",
-    "note": "Hermes visual read: current starter surface is just above the 3 cm mark, about 3.3 cm; bubbles remain visible as the rise eases.",
+    "mood": "ambitious",
+    "note": "Hermes visual read: Conservative estimate from visible jar markings places the actual starter surface at about 3.6 cm.",
     "baselineCm": 2.2,
-    "heightCm": 3.3,
+    "heightCm": 3.6,
     "source": "hermes-vision"
   },
   "events": [
@@ -211,6 +211,18 @@
       "source": "hermes-vision",
       "baselineCm": 2.2,
       "heightCm": 3.3
+    },
+    {
+      "timestamp": "2026-05-05T18:33:52+01:00",
+      "time": "18:33",
+      "risePercent": 64,
+      "phase": "rising",
+      "confidence": 0.72,
+      "image": "photos/starter.jpg",
+      "note": "Hermes visual read: Conservative estimate from visible jar markings places the actual starter surface at about 3.6 cm.",
+      "source": "hermes-vision",
+      "baselineCm": 2.2,
+      "heightCm": 3.6
     }
   ]
 }
