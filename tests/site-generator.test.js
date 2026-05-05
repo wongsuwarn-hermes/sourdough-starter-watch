@@ -174,6 +174,45 @@ test('renderSite calls out the latest point on the rise curve', () => {
   assert.match(html, /latest measured point/);
 });
 
+test('renderSite shows historical photo cards for validating model readings', () => {
+  const data = structuredClone(sampleData);
+  data.observations = [
+    {
+      timestamp: '2026-05-05T08:45:00+01:00',
+      time: '08:45',
+      risePercent: 25,
+      phase: 'rising',
+      confidence: 0.62,
+      image: 'photos/captures/20260505_084500.jpg',
+      note: 'Hermes visual read: early bubbles.'
+    },
+    {
+      timestamp: '2026-05-05T10:15:00+01:00',
+      time: '10:15',
+      risePercent: 80,
+      phase: 'peaking',
+      confidence: 0.71,
+      image: 'photos/captures/20260505_101500.jpg',
+      note: 'Hermes visual read: broad flat top.'
+    }
+  ];
+
+  const html = renderSite(buildViewModel(data));
+
+  assert.match(html, /class="panel validationPanel"/);
+  assert.match(html, /<h2>Reading validation<\/h2>/);
+  assert.match(html, /compare each webcam frame with Hermes’s label/);
+  assert.match(html, /class="validationGrid"/);
+  assert.match(html, /class="validationCard" data-observation-time="08:45"/);
+  assert.match(html, /src="photos\/captures\/20260505_084500\.jpg"/);
+  assert.match(html, /08:45/);
+  assert.match(html, /\+25%/);
+  assert.match(html, /Rising/);
+  assert.match(html, /62% confidence/);
+  assert.match(html, /early bubbles/);
+  assert.match(html, /At peak/);
+});
+
 test('renderSite groups diary events as annotations inside the rise curve panel', () => {
   const data = structuredClone(sampleData);
   data.events = [

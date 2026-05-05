@@ -25,6 +25,7 @@ export function buildViewModel(data) {
   const risePercent = Math.round(Number(current.risePercent ?? 0));
   const confidence = Math.round(Number(current.confidence ?? 0) * 100);
   const nextCheck = Number(current.nextCheckMinutes ?? 0);
+  const observations = Array.isArray(data.observations) ? data.observations : [];
 
   return {
     title: data.starter?.displayName ?? 'Simon’s Sourdough Starter Watch',
@@ -46,7 +47,8 @@ export function buildViewModel(data) {
       heightCm: current.heightCm
     },
     events: Array.isArray(data.events) ? data.events : [],
-    observations: Array.isArray(data.observations) ? data.observations : []
+    observations,
+    validationReadings: buildValidationReadings(observations)
   };
 }
 
@@ -85,6 +87,35 @@ function renderMeasurementSummary(current) {
   const height = formatCm(current.heightCm);
   if (!baseline || !height) return '';
   return `<div class="measurementSummary"><strong>Measured from the photo</strong><span>Baseline ${escapeHtml(baseline)} cm → current ~${escapeHtml(height)} cm → ${escapeHtml(current.riseLabel)} rise</span></div>`;
+}
+
+function buildValidationReadings(observations) {
+  return observations
+    .map((observation) => {
+      const time = formatTime(observation.timestamp ?? observation.time);
+      const rise = Math.round(Number(observation.risePercent ?? 0));
+      const confidence = Math.round(Number(observation.confidence ?? 0) * 100);
+      return {
+        time,
+        image: observation.image ?? 'photos/starter.jpg',
+        riseLabel: `${rise >= 0 ? '+' : ''}${rise}%`,
+        phaseLabel: phaseLabel(observation.phase),
+        confidenceLabel: `${confidence}% confidence`,
+        note: observation.note ?? '',
+        heightCm: formatCm(observation.heightCm),
+        baselineCm: formatCm(observation.baselineCm)
+      };
+    })
+    .filter((reading) => reading.time && reading.image)
+    .sort((a, b) => timeToMinutes(b.time) - timeToMinutes(a.time));
+}
+
+function renderValidationReadings(readings = []) {
+  if (readings.length === 0) return '';
+  return `<section class="grid readingsGrid"><div class="panel validationPanel"><div class="sectionHead validationHead"><div><h2>Reading validation</h2><p>For early calibration: compare each webcam frame with Hermes’s label, rise estimate, phase, and confidence.</p></div><span class="pill">photo audit trail</span></div><div class="validationGrid">${readings.map((reading) => {
+    const measurement = reading.heightCm && reading.baselineCm ? `<span>${escapeHtml(reading.baselineCm)} → ${escapeHtml(reading.heightCm)} cm</span>` : '';
+    return `<article class="validationCard" data-observation-time="${escapeHtml(reading.time)}"><img src="${escapeHtml(reading.image)}" alt="webcam frame for ${escapeHtml(reading.time)} starter reading" loading="eager"><div class="validationMeta"><time>${escapeHtml(reading.time)}</time><strong>${escapeHtml(reading.riseLabel)}</strong><span>${escapeHtml(reading.phaseLabel)}</span><span>${escapeHtml(reading.confidenceLabel)}</span>${measurement}</div>${reading.note ? `<p>${escapeHtml(reading.note)}</p>` : ''}</article>`;
+  }).join('')}</div></div></section>`;
 }
 
 function sortedEvents(events) {
@@ -202,6 +233,7 @@ export function renderSite(vm) {
 <link rel="stylesheet" href="styles.css"></head><body><div class="wrap"><header class="topbar"><div class="brand"><div class="logo" aria-hidden="true">${logoSvg()}</div><div>${escapeHtml(vm.title)}</div></div><div class="navpills"><span class="pill dark">FERMENTATION LAB · STORY MODE</span><span class="pill orange">Observed by ${hermesLink()}</span></div></header>
 <main><section class="hero"><div class="panel heroCopy"><span class="tag">${escapeHtml(vm.starterName)} · PUBLIC OBSERVATORY</span><h1>${titleLines}</h1><p class="sub">A living fermentation experiment watched by a webcam and narrated by Hermes. The agent checks the starter, estimates its rise, writes notes, and pings Telegram when the jar does something worth noticing.</p><div class="storyline"><span class="storylineLabel">Current status</span><b>Today’s mood: ${escapeHtml(current.mood)}.</b> ${escapeHtml(current.note)} Hermes has armed peak watch, which is less dramatic than it sounds — but only slightly.</div><div class="metrics">${renderMetric('Rise', current.riseLabel)}${renderMetric('Stage', current.phaseLabel, 'starter activity')}${renderMetric('Read confidence', current.confidenceLabel, 'visual read certainty')}${renderMetric('Watch cadence', current.nextLabel, 'checks adjust automatically')}</div></div><div class="panel photo snapshotCard"><div class="snapshotViewport"><img class="snapshotBackdrop" src="${escapeHtml(current.image)}" alt="" aria-hidden="true"><img class="starterSnapshot" src="${escapeHtml(current.image)}" alt="latest webcam view of sourdough starter">${renderMeasurementOverlay(current)}</div><div class="photoOverlay"><div><strong>Latest webcam frame</strong><small>Actual camera view used for estimation</small></div><div><small>${escapeHtml(formatTime(current.timestamp))} · webcam</small></div></div>${renderMeasurementSummary(current)}<div class="photoInsight"><div><strong>Latest reading</strong><b>${escapeHtml(current.riseLabel)} rise</b></div><div><strong>What to look for</strong><span>bubbles, the height line, and whether the top is domed or sinking</span></div></div></div></section>
 <section class="grid readingsGrid"><div class="panel curvePanel"><div class="sectionHead"><h2>Today’s rise curve</h2><span class="pill">actual readings vs. baseline</span></div>${renderChart(vm.observations, vm.events)}${renderCurveAnnotations(vm.events)}</div></section>
+${renderValidationReadings(vm.validationReadings)}
 <div class="implementationDivider" aria-label="technical implementation section begins"><span class="dividerEyebrow">Technical implementation</span><strong>Behind the Scenes</strong></div>
 <section class="how"><div class="panel howcopy"><span class="tag">HOW THE WATCH WORKS</span><div class="quote">Domestic science, narrated by an AI agent.</div><p class="note">Every few minutes, a small local computer captures a webcam image. Hermes estimates the starter’s current height, compares it with previous readings, records uncertainty, updates the website, and sends Telegram alerts for meaningful events. The AI can be wrong — glass, residue and lighting are tricky — so Simon can correct key moments like feeding or baseline resets.</p></div><div class="panel diagram"><div class="node"><b>Webcam</b><span>Fixed view of the jar, ideally square-on with a visible baseline.</span></div><div class="arrow">↓ photo capture</div><div class="node"><b>Local computer</b><span>Runs the scheduler, stores photos, and generates public site data.</span></div><div class="arrow">↓ image + context</div><div class="node"><b>Hermes AI</b><span>Estimates rise, labels stage, writes notes, decides whether to alert.</span></div><div class="arrow">↓ publish + notify</div><div class="node"><b>Website</b><span>Public story dashboard for friends; richer lab/debug view for Simon later.</span></div></div></section></main><div class="footer">Prototype: Fermentation Lab visual base × Living Storybook personality × AI-agent transparency</div></div></body></html>`;
 }
