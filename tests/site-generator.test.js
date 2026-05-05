@@ -213,6 +213,44 @@ test('renderSite shows historical photo cards for validating model readings', ()
   assert.match(html, /At peak/);
 });
 
+test('renderSite includes a click-through photo viewer for validation readings', () => {
+  const data = structuredClone(sampleData);
+  data.observations = [
+    {
+      timestamp: '2026-05-05T08:45:00+01:00',
+      time: '08:45',
+      risePercent: 25,
+      phase: 'rising',
+      confidence: 0.62,
+      image: 'photos/captures/20260505_084500.jpg',
+      note: 'Hermes visual read: early bubbles.'
+    },
+    {
+      timestamp: '2026-05-05T10:15:00+01:00',
+      time: '10:15',
+      risePercent: 80,
+      phase: 'peaking',
+      confidence: 0.71,
+      image: 'photos/captures/20260505_101500.jpg',
+      note: 'Hermes visual read: broad flat top.'
+    }
+  ];
+
+  const html = renderSite(buildViewModel(data));
+
+  assert.match(html, /<button class="validationOpen" type="button" data-viewer-index="0"/);
+  assert.match(html, /aria-label="Open 10:15 photo in viewer"/);
+  assert.match(html, /class="photoViewer" hidden/);
+  assert.match(html, /role="dialog"/);
+  assert.match(html, /aria-modal="true"/);
+  assert.match(html, /class="viewerImage"/);
+  assert.match(html, /data-viewer-images=/);
+  assert.match(html, /viewerPrev/);
+  assert.match(html, /viewerNext/);
+  assert.match(html, /viewerClose/);
+  assert.match(html, /function initPhotoViewer\(\)/);
+});
+
 test('renderSite groups diary events as annotations inside the rise curve panel', () => {
   const data = structuredClone(sampleData);
   data.events = [
