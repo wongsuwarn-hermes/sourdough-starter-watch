@@ -31,7 +31,7 @@ test('buildViewModel formats current starter status for display', () => {
   assert.equal(vm.title, "Simon’s Sourdough Starter Watch");
   assert.equal(vm.heroTitle, 'One Jar.\nOne Webcam.\nMany Bubbles.');
   assert.equal(vm.current.riseLabel, '+68%');
-  assert.equal(vm.current.phaseLabel, 'R+');
+  assert.equal(vm.current.phaseLabel, 'Rising');
   assert.equal(vm.current.confidenceLabel, '74%');
   assert.equal(vm.current.nextLabel, '10m');
   assert.equal(vm.current.image, 'photos/starter.jpg');
@@ -65,16 +65,24 @@ test('renderSite wraps the live webcam image in a mobile-friendly snapshot viewp
   assert.match(html, /class="starterSnapshot"/);
 });
 
-test('renderSite hyperlinks visible Hermes references to the Nous Research Hermes site', () => {
+test('renderSite links Hermes only in the website header', () => {
   const data = structuredClone(sampleData);
   data.current.note = 'Hermes noticed stronger bubbles.';
   const html = renderSite(buildViewModel(data));
 
   const matches = html.match(/href="https:\/\/hermes-agent\.nousresearch\.com\/"/g) ?? [];
-  assert.ok(matches.length >= 5);
+  assert.equal(matches.length, 1);
+  assert.match(html, /Observed by <a class="hermesLink" href="https:\/\/hermes-agent\.nousresearch\.com\/"/);
   assert.match(html, /target="_blank"/);
   assert.match(html, /rel="noopener noreferrer"/);
-  assert.match(html, /<b>Today’s mood: ambitious\.<\/b> <a class="hermesLink" href="https:\/\/hermes-agent\.nousresearch\.com\/"/);
+  assert.match(html, /<b>Today’s mood: ambitious\.<\/b> Hermes noticed stronger bubbles\. Hermes has armed peak watch/);
+});
+
+test('renderSite uses visitor-friendly starter stage copy instead of code-like phase labels', () => {
+  const html = renderSite(buildViewModel(sampleData));
+
+  assert.match(html, /<span>Stage<\/span><b>Rising<\/b>/);
+  assert.doesNotMatch(html, /<span>Phase<\/span><b>R\+<\/b>/);
 });
 
 test('renderSite escapes user-provided event text', () => {
