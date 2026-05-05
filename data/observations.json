@@ -5,14 +5,14 @@
     "baselineCm": 2.2
   },
   "current": {
-    "timestamp": "2026-05-05T13:20:23+01:00",
+    "timestamp": "2026-05-05T14:22:34+01:00",
     "risePercent": 50,
     "phase": "rising",
-    "confidence": 0.72,
+    "confidence": 0.7,
     "nextCheckMinutes": 10,
     "image": "photos/starter.jpg",
     "mood": "ambitious",
-    "note": "Hermes visual read: Main foamy surface just above the 3 cm mark; wall residue/glare ignored; estimate about 3.1-3.5 cm.",
+    "note": "Hermes visual read: Actual surface fairly level and bubbly just above 3 cm; estimate approx 3.1-3.6 cm.",
     "baselineCm": 2.2,
     "heightCm": 3.3,
     "source": "hermes-vision"
@@ -112,6 +112,18 @@
       "confidence": 0.72,
       "image": "photos/starter.jpg",
       "note": "Hermes visual read: Main foamy surface just above the 3 cm mark; wall residue/glare ignored; estimate about 3.1-3.5 cm.",
+      "source": "hermes-vision",
+      "baselineCm": 2.2,
+      "heightCm": 3.3
+    },
+    {
+      "timestamp": "2026-05-05T14:22:34+01:00",
+      "time": "14:22",
+      "risePercent": 50,
+      "phase": "rising",
+      "confidence": 0.7,
+      "image": "photos/starter.jpg",
+      "note": "Hermes visual read: Actual surface fairly level and bubbly just above 3 cm; estimate approx 3.1-3.6 cm.",
       "source": "hermes-vision",
       "baselineCm": 2.2,
       "heightCm": 3.3
