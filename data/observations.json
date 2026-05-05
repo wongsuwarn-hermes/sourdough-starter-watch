@@ -1,0 +1,43 @@
+{
+  "starter": {
+    "name": "STARTER-001",
+    "displayName": "Simon’s Sourdough Starter Watch"
+  },
+  "current": {
+    "timestamp": "2026-05-05T07:09:00+01:00",
+    "risePercent": 68,
+    "phase": "rising",
+    "confidence": 0.74,
+    "nextCheckMinutes": 10,
+    "image": "photos/starter.jpg",
+    "mood": "ambitious",
+    "note": "The starter is rising with visible activity."
+  },
+  "events": [
+    {
+      "time": "08:10",
+      "title": "Fed.",
+      "note": "Simon reset the baseline. The origin story begins again."
+    },
+    {
+      "time": "09:20",
+      "title": "First bubbles.",
+      "note": "Suspicious optimism detected near the lower edge of the jar."
+    },
+    {
+      "time": "11:40",
+      "title": "Acceleration.",
+      "note": "The rise curve steepens. Main character energy."
+    },
+    {
+      "time": "13:10",
+      "title": "Peak watch.",
+      "note": "Hermes will bother Simon only if something important happens."
+    }
+  ],
+  "observations": [
+    { "time": "08:00", "risePercent": 0 },
+    { "time": "10:00", "risePercent": 30 },
+    { "time": "12:00", "risePercent": 68 }
+  ]
+}
