@@ -56,7 +56,7 @@ if git diff --cached --quiet; then
   exit 0
 fi
 
-MESSAGE="$(node -e "import('./src/automation.js').then(m=>console.log(m.buildPublishCommitMessage(new Date().toISOString())))")"
+MESSAGE="$(node -e "import('./src/automation.js').then(m=>console.log(m.buildPublishCommitMessage()))")"
 git commit -m "$MESSAGE"
 git push
 

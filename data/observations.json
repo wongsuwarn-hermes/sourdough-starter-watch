@@ -5,7 +5,7 @@
     "baselineCm": 2.2
   },
   "current": {
-    "timestamp": "2026-05-05T09:01:43.757Z",
+    "timestamp": "2026-05-05T10:01:43+01:00",
     "risePercent": 36,
     "phase": "rising",
     "confidence": 0.72,
@@ -18,7 +18,7 @@
   },
   "events": [
     {
-      "time": "09:01",
+      "time": "10:01",
       "title": "Baseline set.",
       "note": "Baseline set to 2.2cm.",
       "type": "baseline",
@@ -68,19 +68,8 @@
       "note": "Fresh webcam frame published; starter appears close to baseline, with precise rise estimate pending calibration."
     },
     {
-      "timestamp": "2026-05-05T08:59:01.047Z",
-      "time": "08:59",
-      "risePercent": 0,
-      "phase": "dormant",
-      "confidence": 0.45,
-      "image": "photos/starter.jpg",
-      "note": "Dry-run automation check; fresh webcam frame captured through Terminal permission path.",
-      "baselineCm": 2.2,
-      "heightCm": 2.2
-    },
-    {
-      "timestamp": "2026-05-05T09:01:43.757Z",
-      "time": "09:01",
+      "timestamp": "2026-05-05T10:01:43+01:00",
+      "time": "10:01",
       "risePercent": 36,
       "phase": "rising",
       "confidence": 0.72,

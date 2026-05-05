@@ -3,7 +3,7 @@ import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { addObservation } from '../src/observations.js';
 import { buildObservationFromReading } from '../src/estimation.js';
-import { defaultReadingFromData } from '../src/automation.js';
+import { defaultReadingFromData, localIsoTimestamp } from '../src/automation.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const dataPath = join(root, 'data', 'observations.json');
@@ -35,7 +35,7 @@ async function main() {
 
   const reading = {
     ...fallback,
-    timestamp: args.timestamp ?? new Date().toISOString(),
+    timestamp: args.timestamp ?? localIsoTimestamp(),
     image,
     baselineCm: Number(args['baseline-cm'] ?? args.baseline ?? fallback.baselineCm),
     heightCm: Number(args['height-cm'] ?? args.height ?? fallback.heightCm),

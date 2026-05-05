@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   defaultReadingFromData,
   buildPublishCommitMessage,
+  localIsoTimestamp,
   normalizeManualCommand
 } from '../src/automation.js';
 
@@ -26,6 +27,11 @@ test('buildPublishCommitMessage is timestamped but stable enough for audit logs'
     buildPublishCommitMessage('2026-05-05T10:30:00+01:00'),
     'chore: publish starter observation 2026-05-05 10:30'
   );
+});
+
+test('localIsoTimestamp preserves local clock time with timezone offset', () => {
+  const date = new Date('2026-05-05T09:01:02.000Z');
+  assert.equal(localIsoTimestamp(date, 60), '2026-05-05T10:01:02+01:00');
 });
 
 test('normalizeManualCommand supports fed, baseline, and note shortcuts', () => {

@@ -11,9 +11,18 @@ export function defaultReadingFromData(data) {
   };
 }
 
-export function buildPublishCommitMessage(timestamp = new Date().toISOString()) {
+export function buildPublishCommitMessage(timestamp = localIsoTimestamp()) {
   const text = String(timestamp).replace('T', ' ').slice(0, 16);
   return `chore: publish starter observation ${text}`;
+}
+
+export function localIsoTimestamp(date = new Date(), offsetMinutes = -date.getTimezoneOffset()) {
+  const shifted = new Date(date.getTime() + offsetMinutes * 60_000);
+  const sign = offsetMinutes >= 0 ? '+' : '-';
+  const absolute = Math.abs(offsetMinutes);
+  const offsetHours = String(Math.floor(absolute / 60)).padStart(2, '0');
+  const offsetMins = String(absolute % 60).padStart(2, '0');
+  return `${shifted.toISOString().slice(0, 19)}${sign}${offsetHours}:${offsetMins}`;
 }
 
 export function normalizeManualCommand(argv) {
