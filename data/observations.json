@@ -5,16 +5,16 @@
     "baselineCm": 2.2
   },
   "current": {
-    "timestamp": "2026-05-05T19:06:29+01:00",
-    "risePercent": 55,
-    "phase": "rising",
-    "confidence": 0.62,
-    "nextCheckMinutes": 10,
+    "timestamp": "2026-05-05T19:21:13+01:00",
+    "risePercent": 32,
+    "phase": "falling",
+    "confidence": 0.55,
+    "nextCheckMinutes": 30,
     "image": "photos/starter.jpg",
-    "mood": "ambitious",
-    "note": "Hermes visual read: surface is around the mid-3 cm band; ignored glare, residue, jar curvature, and old streaks.",
+    "mood": "settling",
+    "note": "Hermes visual read: surface appears near the lower 3 cm band; ignored glare, jar curvature, wall residue, reflections, and old streaks.",
     "baselineCm": 2.2,
-    "heightCm": 3.4,
+    "heightCm": 2.9,
     "source": "hermes-vision"
   },
   "events": [
@@ -259,6 +259,18 @@
       "source": "hermes-vision",
       "baselineCm": 2.2,
       "heightCm": 3.4
+    },
+    {
+      "timestamp": "2026-05-05T19:21:13+01:00",
+      "time": "19:21",
+      "risePercent": 32,
+      "phase": "falling",
+      "confidence": 0.55,
+      "image": "photos/starter.jpg",
+      "note": "Hermes visual read: surface appears near the lower 3 cm band; ignored glare, jar curvature, wall residue, reflections, and old streaks.",
+      "source": "hermes-vision",
+      "baselineCm": 2.2,
+      "heightCm": 2.9
     }
   ]
 }
