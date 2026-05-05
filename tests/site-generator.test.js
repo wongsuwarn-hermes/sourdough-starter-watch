@@ -29,7 +29,7 @@ test('buildViewModel formats current starter status for display', () => {
   const vm = buildViewModel(sampleData);
 
   assert.equal(vm.title, "Simon’s Sourdough Starter Watch");
-  assert.equal(vm.heroTitle, 'One Jar.\nOne AI Agent.\nMany Bubbles.');
+  assert.equal(vm.heroTitle, 'One Jar.\nOne Webcam.\nMany Bubbles.');
   assert.equal(vm.current.riseLabel, '+68%');
   assert.equal(vm.current.phaseLabel, 'R+');
   assert.equal(vm.current.confidenceLabel, '74%');
@@ -40,8 +40,8 @@ test('buildViewModel formats current starter status for display', () => {
 test('renderSite includes the story-mode title, Hermes log, and privacy-safe hardware copy', () => {
   const html = renderSite(buildViewModel(sampleData));
 
-  assert.match(html, /One Jar\.<br>One AI Agent\.<br>Many Bubbles\./);
-  assert.match(html, /Observed by Hermes/);
+  assert.match(html, /One Jar\.<br>One Webcam\.<br>Many Bubbles\./);
+  assert.match(html, /Observed by <a class="hermesLink" href="https:\/\/hermes-agent\.nousresearch\.com\/"/);
   assert.match(html, /HERMES OBSERVATION LOG/);
   assert.match(html, /small local computer/);
   assert.doesNotMatch(html, /Mac Studio/i);
@@ -63,6 +63,18 @@ test('renderSite wraps the live webcam image in a mobile-friendly snapshot viewp
   assert.match(html, /class="panel photo snapshotCard"/);
   assert.match(html, /class="snapshotViewport"/);
   assert.match(html, /class="starterSnapshot"/);
+});
+
+test('renderSite hyperlinks visible Hermes references to the Nous Research Hermes site', () => {
+  const data = structuredClone(sampleData);
+  data.current.note = 'Hermes noticed stronger bubbles.';
+  const html = renderSite(buildViewModel(data));
+
+  const matches = html.match(/href="https:\/\/hermes-agent\.nousresearch\.com\/"/g) ?? [];
+  assert.ok(matches.length >= 5);
+  assert.match(html, /target="_blank"/);
+  assert.match(html, /rel="noopener noreferrer"/);
+  assert.match(html, /<b>Today’s mood: ambitious\.<\/b> <a class="hermesLink" href="https:\/\/hermes-agent\.nousresearch\.com\/"/);
 });
 
 test('renderSite escapes user-provided event text', () => {
