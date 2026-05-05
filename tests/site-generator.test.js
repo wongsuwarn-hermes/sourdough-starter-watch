@@ -151,7 +151,7 @@ test('renderSite draws the rise curve from actual observations and feeding event
 
   assert.match(html, /data-chart="actual-observations"/);
   assert.match(html, /data-rise="80"/);
-  assert.match(html, /aria-label="10:15: \+80% rise"/);
+  assert.match(html, /aria-label="10:15: \+80% rise accepted curve reading"/);
   assert.match(html, /07:30/);
   assert.match(html, /10:15/);
   assert.doesNotMatch(html, /class="chartDot cue-/);
@@ -171,7 +171,37 @@ test('renderSite calls out the latest point on the rise curve', () => {
 
   assert.match(html, /class="latestReadingCallout"/);
   assert.match(html, /Now: \+80% at 10:15/);
-  assert.match(html, /latest measured point/);
+  assert.match(html, /latest accepted curve point/);
+});
+
+test('renderSite leads with likely peak and separates accepted curve readings from suspect visual readings', () => {
+  const data = structuredClone(sampleData);
+  data.cycles = [{ date: '2026-05-04', feedTime: '08:00', peakTime: '11:30', peakHeightCm: 3.5, status: 'calibrated' }];
+  data.events = [{ time: '08:10', title: 'Fed.', type: 'fed', note: 'Baseline reset.' }];
+  data.observations = [
+    { timestamp: '2026-05-05T09:43:00+01:00', time: '09:43', heightCm: 2.2, risePercent: 0, confidence: 0.55, phase: 'dormant', image: 'photos/captures/20260505_094300.jpg' },
+    { timestamp: '2026-05-05T10:12:00+01:00', time: '10:12', heightCm: 3.2, risePercent: 45, confidence: 0.68, phase: 'rising', image: 'photos/captures/20260505_101200.jpg' },
+    { timestamp: '2026-05-05T11:16:00+01:00', time: '11:16', heightCm: 3.4, risePercent: 55, confidence: 0.72, phase: 'rising', image: 'photos/captures/20260505_111600.jpg' },
+    { timestamp: '2026-05-05T18:20:00+01:00', time: '18:20', heightCm: 3.3, risePercent: 50, confidence: 0.72, phase: 'falling', image: 'photos/captures/20260505_182000.jpg' },
+    { timestamp: '2026-05-05T19:46:00+01:00', time: '19:46', heightCm: 3.8, risePercent: 73, confidence: 0.62, phase: 'rising', validationStatus: 'suspect-wall-residue', image: 'photos/captures/20260505_194600.jpg' }
+  ];
+
+  const html = renderSite(buildViewModel(data));
+
+  assert.match(html, /class="panel peakPanel"/);
+  assert.match(html, /Today’s likely peak/);
+  assert.match(html, /11:16/);
+  assert.match(html, /3\.4 cm/);
+  assert.match(html, /Peak window/);
+  assert.match(html, /10:55–11:45/);
+  assert.match(html, /class="chartDot acceptedDot"/);
+  assert.match(html, /class="chartDot suspectDot"/);
+  assert.match(html, /data-curve-status="suspect"/);
+  assert.match(html, /Likely residue/);
+  assert.match(html, /raw visual reading/);
+  assert.match(html, /accepted curve/);
+  assert.match(html, /Latest raw visual/);
+  assert.match(html, /suspect residue reading/);
 });
 
 test('renderSite shows historical photo cards for validating model readings', () => {

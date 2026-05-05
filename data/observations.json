@@ -15,7 +15,9 @@
     "note": "Hermes visual read: starter surface near 3.8 cm; ignored glare, wall residue, reflections, and old streaks.",
     "baselineCm": 2.2,
     "heightCm": 3.8,
-    "source": "hermes-vision"
+    "source": "hermes-vision",
+    "validationStatus": "suspect-wall-residue",
+    "validationNote": "Manual review says today’s true peak was 3.4cm at 11:16; later high readings likely counted residue stuck to the jar wall."
   },
   "events": [
     {
@@ -43,6 +45,14 @@
       "title": "Acceleration.",
       "note": "The rise curve steepens. Main character energy.",
       "source": "manual"
+    },
+    {
+      "time": "11:16",
+      "title": "Manual peak calibration.",
+      "note": "Simon reviewed today’s photos: greatest actual height was 3.4cm at 11:16. Later higher visual estimates are suspect because starter residue remained stuck to the jar walls after the starter fell.",
+      "type": "calibration",
+      "source": "manual",
+      "heightCm": 3.4
     }
   ],
   "observations": [
@@ -102,7 +112,9 @@
       "note": "Hermes visual read: Main foamy surface sits a little above the 3 cm mark; plausible range about 3.2-3.6 cm.",
       "baselineCm": 2.2,
       "heightCm": 3.4,
-      "source": "hermes-vision"
+      "source": "hermes-vision",
+      "validationStatus": "suspect-wall-residue",
+      "validationNote": "Manual review says the starter had already fallen after the 11:16 3.4cm peak; this estimate may be counting starter stuck to the jar wall."
     },
     {
       "timestamp": "2026-05-05T13:20:23+01:00",
@@ -174,7 +186,9 @@
       "note": "Hermes visual read: current active surface appears slightly above the 3 cm mark, with bubbles visible; glare, jar curvature, residue, and old streaks ignored.",
       "source": "hermes-vision",
       "baselineCm": 2.2,
-      "heightCm": 3.4
+      "heightCm": 3.4,
+      "validationStatus": "suspect-wall-residue",
+      "validationNote": "Manual review says the starter had already fallen after the 11:16 3.4cm peak; this estimate may be counting starter stuck to the jar wall."
     },
     {
       "timestamp": "2026-05-05T17:56:28+01:00",
@@ -186,7 +200,9 @@
       "note": "Hermes visual read: surface appears near the 3.8 cm mark after ignoring glare, wall residue, reflections, and old streaks.",
       "source": "hermes-vision",
       "baselineCm": 2.2,
-      "heightCm": 3.8
+      "heightCm": 3.8,
+      "validationStatus": "suspect-wall-residue",
+      "validationNote": "Manual review says the starter had already fallen after the 11:16 3.4cm peak; this estimate may be counting starter stuck to the jar wall."
     },
     {
       "timestamp": "2026-05-05T18:11:21+01:00",
@@ -198,7 +214,9 @@
       "note": "Hermes visual read: surface sits just below the 4 cm mark; ignoring glare and wall streaks, a conservative current height is about 3.6 cm.",
       "source": "hermes-vision",
       "baselineCm": 2.2,
-      "heightCm": 3.6
+      "heightCm": 3.6,
+      "validationStatus": "suspect-wall-residue",
+      "validationNote": "Manual review says the starter had already fallen after the 11:16 3.4cm peak; this estimate may be counting starter stuck to the jar wall."
     },
     {
       "timestamp": "2026-05-05T18:20:53+01:00",
@@ -222,7 +240,9 @@
       "note": "Hermes visual read: Conservative estimate from visible jar markings places the actual starter surface at about 3.6 cm.",
       "source": "hermes-vision",
       "baselineCm": 2.2,
-      "heightCm": 3.6
+      "heightCm": 3.6,
+      "validationStatus": "suspect-wall-residue",
+      "validationNote": "Manual review says the starter had already fallen after the 11:16 3.4cm peak; this estimate may be counting starter stuck to the jar wall."
     },
     {
       "timestamp": "2026-05-05T18:46:49+01:00",
@@ -234,7 +254,9 @@
       "note": "Hermes visual read: The active current surface appears conservatively around 3.4 cm, not counting wall residue or glare.",
       "source": "hermes-vision",
       "baselineCm": 2.2,
-      "heightCm": 3.4
+      "heightCm": 3.4,
+      "validationStatus": "suspect-wall-residue",
+      "validationNote": "Manual review says the starter had already fallen after the 11:16 3.4cm peak; this estimate may be counting starter stuck to the jar wall."
     },
     {
       "timestamp": "2026-05-05T18:56:55+01:00",
@@ -258,7 +280,9 @@
       "note": "Hermes visual read: surface is around the mid-3 cm band; ignored glare, residue, jar curvature, and old streaks.",
       "source": "hermes-vision",
       "baselineCm": 2.2,
-      "heightCm": 3.4
+      "heightCm": 3.4,
+      "validationStatus": "suspect-wall-residue",
+      "validationNote": "Manual review says the starter had already fallen after the 11:16 3.4cm peak; this estimate may be counting starter stuck to the jar wall."
     },
     {
       "timestamp": "2026-05-05T19:21:13+01:00",
@@ -282,7 +306,9 @@
       "note": "Hermes visual read: current surface is estimated near 3.8 cm against the 2.2 cm baseline; dim lighting and reflections reduce certainty.",
       "source": "hermes-vision",
       "baselineCm": 2.2,
-      "heightCm": 3.8
+      "heightCm": 3.8,
+      "validationStatus": "suspect-wall-residue",
+      "validationNote": "Manual review says the starter had already fallen after the 11:16 3.4cm peak; this estimate may be counting starter stuck to the jar wall."
     },
     {
       "timestamp": "2026-05-05T19:46:23+01:00",
@@ -294,7 +320,22 @@
       "note": "Hermes visual read: starter surface near 3.8 cm; ignored glare, wall residue, reflections, and old streaks.",
       "source": "hermes-vision",
       "baselineCm": 2.2,
-      "heightCm": 3.8
+      "heightCm": 3.8,
+      "validationStatus": "suspect-wall-residue",
+      "validationNote": "Manual review says the starter had already fallen after the 11:16 3.4cm peak; this estimate may be counting starter stuck to the jar wall."
+    }
+  ],
+  "cycles": [
+    {
+      "date": "2026-05-05",
+      "feedTime": "08:10",
+      "peakTime": "11:16",
+      "peakHeightCm": 3.4,
+      "baselineCm": 2.2,
+      "peakRisePercent": 55,
+      "status": "calibrated",
+      "source": "manual",
+      "note": "Manual photo review: true peak was 3.4cm at 11:16; later high visual estimates likely counted residue stuck to jar walls."
     }
   ]
 }

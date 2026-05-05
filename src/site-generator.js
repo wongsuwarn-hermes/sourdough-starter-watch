@@ -1,3 +1,5 @@
+import { buildCycleModel } from './cycle-model.js';
+
 const HERO_TITLE = 'One Jar.\nOne Webcam.\nMany Bubbles.';
 const HERMES_URL = 'https://hermes-agent.nousresearch.com/';
 
@@ -26,6 +28,7 @@ export function buildViewModel(data) {
   const confidence = Math.round(Number(current.confidence ?? 0) * 100);
   const nextCheck = Number(current.nextCheckMinutes ?? 0);
   const observations = Array.isArray(data.observations) ? data.observations : [];
+  const cycleModel = buildCycleModel(data);
 
   return {
     title: data.starter?.displayName ?? 'Simon’s Sourdough Starter Watch',
@@ -48,6 +51,7 @@ export function buildViewModel(data) {
     },
     events: Array.isArray(data.events) ? data.events : [],
     observations,
+    cycleModel,
     validationReadings: buildValidationReadings(observations)
   };
 }
@@ -66,6 +70,7 @@ function renderMetric(label, value, helper = '') {
 }
 
 function formatCm(value) {
+  if (value === undefined || value === null || value === '') return null;
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return null;
   return numeric.toFixed(1).replace(/\.0$/, '');
@@ -192,6 +197,18 @@ initPhotoViewer();
 </script>`;
 }
 
+function renderPeakPanel(cycleModel) {
+  const peak = cycleModel?.likelyPeak;
+  if (!peak) return '';
+  const height = formatCm(peak.heightCm);
+  const rise = Number.isFinite(Number(peak.risePercent)) ? `+${Math.round(Number(peak.risePercent))}%` : 'forecast';
+  const window = cycleModel.peakWindow ? `${cycleModel.peakWindow.start}–${cycleModel.peakWindow.end}` : 'still narrowing';
+  const stage = cycleModel.stage === 'past_peak' ? 'Past peak' : cycleModel.stage === 'near_peak' ? 'Near peak' : cycleModel.stage === 'rising' ? 'Still rising' : 'Watching';
+  const suspectCount = cycleModel.readings?.suspect?.length ?? 0;
+  const suspectCopy = suspectCount > 0 ? `<span class="peakFlag">Likely residue: ${suspectCount} raw visual reading${suspectCount === 1 ? '' : 's'} kept out of the accepted curve</span>` : '';
+  return `<section class="grid peakGrid"><div class="panel peakPanel"><div><span class="tag">Bayesian trend model</span><h2>Today’s likely peak</h2><p>${escapeHtml(cycleModel.explanation)}</p></div><div class="peakStats"><div><span>Peak time</span><strong>${escapeHtml(peak.time)}</strong></div><div><span>Peak height</span><strong>${height ? `${escapeHtml(height)} cm` : '—'}</strong></div><div><span>Peak rise</span><strong>${escapeHtml(rise)}</strong></div><div><span>Peak window</span><strong>${escapeHtml(window)}</strong></div><div><span>Cycle stage</span><strong>${escapeHtml(stage)}</strong></div></div>${suspectCopy}<p class="peakModelNote">The backend uses prior calibrated cycles plus today’s reliable pre-peak readings; late residue-prone photos remain visible as raw visual readings but do not automatically move the accepted curve.</p></div></section>`;
+}
+
 function sortedEvents(events) {
   return [...events].sort((a, b) => {
     const aMinutes = timeToMinutes(a.time);
@@ -227,7 +244,8 @@ function normalizeChartData(observations) {
     .map((observation) => ({
       time: String(observation.time ?? '').slice(0, 5),
       minutes: timeToMinutes(observation.time),
-      rise: Math.max(0, Math.round(Number(observation.risePercent ?? 0)))
+      rise: Math.max(0, Math.round(Number(observation.risePercent ?? 0))),
+      curveStatus: String(observation.validationStatus ?? '').includes('suspect') ? 'suspect' : 'accepted'
     }))
     .filter((point) => point.time && Number.isFinite(point.minutes) && Number.isFinite(point.rise))
     .sort((a, b) => a.minutes - b.minutes);
@@ -275,7 +293,7 @@ function renderChartSvg({ observations, events, width, height, className, layout
   const labelY = height - 12;
   const yLabelX = Math.max(4, layout.left - 46);
 
-  return `<svg class="chart ${className}" data-chart="actual-observations" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" aria-label="starter rise over time"><defs><linearGradient id="riseFill2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f54e00" stop-opacity=".20"/><stop offset="100%" stop-color="#f54e00" stop-opacity="0"/></linearGradient></defs>${axisMarkup(layout)}<g class="ylabel"><text x="${yLabelX}" y="${layout.top + 6}">100%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .25 + 6}">75%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .5 + 6}">50%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .75 + 6}">25%</text><text x="${yLabelX + 8}" y="${layout.bottom + 4}">0%</text></g><path class="area" d="${areaPath}"/><path class="line" d="${linePath}"/><g class="dots">${points.map((point, index) => `<circle class="chartDot" data-rise="${point.rise}" aria-label="${escapeHtml(point.time)}: ${point.rise >= 0 ? '+' : ''}${point.rise}% rise" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${index === points.length - 1 ? 7 : 5}"/>`).join('')}</g><g class="xlabel">${labels.map((point, index) => {
+  return `<svg class="chart ${className}" data-chart="actual-observations" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" aria-label="starter rise over time"><defs><linearGradient id="riseFill2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f54e00" stop-opacity=".20"/><stop offset="100%" stop-color="#f54e00" stop-opacity="0"/></linearGradient></defs>${axisMarkup(layout)}<g class="ylabel"><text x="${yLabelX}" y="${layout.top + 6}">100%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .25 + 6}">75%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .5 + 6}">50%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .75 + 6}">25%</text><text x="${yLabelX + 8}" y="${layout.bottom + 4}">0%</text></g><path class="area" d="${areaPath}"/><path class="line" d="${linePath}"/><g class="dots">${points.map((point, index) => `<circle class="chartDot ${point.curveStatus === 'suspect' ? 'suspectDot' : 'acceptedDot'}" data-curve-status="${escapeHtml(point.curveStatus)}" data-rise="${point.rise}" aria-label="${escapeHtml(point.time)}: ${point.rise >= 0 ? '+' : ''}${point.rise}% rise${point.curveStatus === 'suspect' ? ' suspect raw visual reading' : ' accepted curve reading'}" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${index === points.length - 1 ? 7 : 5}"/>`).join('')}</g><g class="xlabel">${labels.map((point, index) => {
     const anchor = index === 0 ? 'start' : index === labels.length - 1 ? 'end' : 'middle';
     return `<text text-anchor="${anchor}" x="${point.x.toFixed(1)}" y="${labelY}">${escapeHtml(point.time)}</text>`;
   }).join('')}</g></svg>`;
@@ -285,7 +303,12 @@ function renderLatestReadingCallout(points) {
   const latest = points.at(-1);
   if (!latest) return '';
   const riseLabel = `${latest.rise >= 0 ? '+' : ''}${latest.rise}%`;
-  return `<div class="latestReadingCallout"><strong>Now: ${escapeHtml(riseLabel)} at ${escapeHtml(latest.time)}</strong><span>latest measured point from the webcam sequence</span></div>`;
+  if (latest.curveStatus === 'suspect') {
+    const latestAccepted = [...points].reverse().find((point) => point.curveStatus === 'accepted');
+    const acceptedCopy = latestAccepted ? `accepted curve last reliable point: ${latestAccepted.rise >= 0 ? '+' : ''}${latestAccepted.rise}% at ${latestAccepted.time}` : 'accepted curve is waiting for a reliable reading';
+    return `<div class="latestReadingCallout suspectCallout"><strong>Latest raw visual: ${escapeHtml(riseLabel)} at ${escapeHtml(latest.time)}</strong><span>suspect residue reading; ${escapeHtml(acceptedCopy)}</span></div>`;
+  }
+  return `<div class="latestReadingCallout"><strong>Now: ${escapeHtml(riseLabel)} at ${escapeHtml(latest.time)}</strong><span>latest accepted curve point from the webcam sequence</span></div>`;
 }
 
 function renderChart(observations = [], events = []) {
@@ -306,6 +329,7 @@ export function renderSite(vm) {
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,650;9..144,800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css"></head><body><div class="wrap"><header class="topbar"><div class="brand"><div class="logo" aria-hidden="true">${logoSvg()}</div><div>${escapeHtml(vm.title)}</div></div><div class="navpills"><span class="pill dark">FERMENTATION LAB · STORY MODE</span><span class="pill orange">Observed by ${hermesLink()}</span></div></header>
 <main><section class="hero"><div class="panel heroCopy"><span class="tag">${escapeHtml(vm.starterName)} · PUBLIC OBSERVATORY</span><h1>${titleLines}</h1><p class="sub">A living fermentation experiment watched by a webcam and narrated by Hermes. The agent checks the starter, estimates its rise, writes notes, and pings Telegram when the jar does something worth noticing.</p><div class="storyline"><span class="storylineLabel">Current status</span><b>Today’s mood: ${escapeHtml(current.mood)}.</b> ${escapeHtml(current.note)} Hermes has armed peak watch, which is less dramatic than it sounds — but only slightly.</div><div class="metrics">${renderMetric('Rise', current.riseLabel)}${renderMetric('Stage', current.phaseLabel, 'starter activity')}${renderMetric('Read confidence', current.confidenceLabel, 'visual read certainty')}${renderMetric('Watch cadence', current.nextLabel, 'checks adjust automatically')}</div></div><div class="panel photo snapshotCard"><div class="snapshotViewport"><img class="snapshotBackdrop" src="${escapeHtml(current.image)}" alt="" aria-hidden="true"><img class="starterSnapshot" src="${escapeHtml(current.image)}" alt="latest webcam view of sourdough starter">${renderMeasurementOverlay(current)}</div><div class="photoOverlay"><div><strong>Latest webcam frame</strong><small>Actual camera view used for estimation</small></div><div><small>${escapeHtml(formatTime(current.timestamp))} · webcam</small></div></div>${renderMeasurementSummary(current)}<div class="photoInsight"><div><strong>Latest reading</strong><b>${escapeHtml(current.riseLabel)} rise</b></div><div><strong>What to look for</strong><span>bubbles, the height line, and whether the top is domed or sinking</span></div></div></div></section>
+${renderPeakPanel(vm.cycleModel)}
 <section class="grid readingsGrid"><div class="panel curvePanel"><div class="sectionHead"><h2>Today’s rise curve</h2><span class="pill">actual readings vs. baseline</span></div>${renderChart(vm.observations, vm.events)}${renderCurveAnnotations(vm.events)}</div></section>
 ${renderValidationReadings(vm.validationReadings)}
 ${renderPhotoViewer(vm.validationReadings)}
