@@ -76,8 +76,8 @@ function timeToMinutes(time) {
   return Number(match[1]) * 60 + Number(match[2]);
 }
 
-function chartPoints(observations) {
-  const usable = observations
+function normalizeChartData(observations) {
+  return observations
     .map((observation) => ({
       time: String(observation.time ?? '').slice(0, 5),
       minutes: timeToMinutes(observation.time),
@@ -85,6 +85,10 @@ function chartPoints(observations) {
     }))
     .filter((point) => point.time && Number.isFinite(point.minutes) && Number.isFinite(point.rise))
     .sort((a, b) => a.minutes - b.minutes);
+}
+
+function chartPoints(observations, layout) {
+  const usable = normalizeChartData(observations);
 
   if (usable.length === 0) return [];
 
@@ -92,22 +96,34 @@ function chartPoints(observations) {
   const maxMinute = Math.max(...usable.map((point) => point.minutes));
   const maxRise = Math.max(100, ...usable.map((point) => point.rise));
   const span = Math.max(1, maxMinute - minMinute);
+  const plotWidth = layout.right - layout.left;
+  const plotHeight = layout.bottom - layout.top;
 
   return usable.map((point) => ({
     ...point,
-    x: 54 + ((point.minutes - minMinute) / span) * 676,
-    y: 244 - (Math.min(point.rise, maxRise) / maxRise) * 216
+    x: layout.left + ((point.minutes - minMinute) / span) * plotWidth,
+    y: layout.bottom - (Math.min(point.rise, maxRise) / maxRise) * plotHeight
   }));
 }
 
-function renderChart(observations = [], events = []) {
-  const points = chartPoints(observations);
-  if (points.length === 0) {
-    return `<div class="chartFrame"><svg class="chart" data-chart="actual-observations" viewBox="0 0 760 270" preserveAspectRatio="xMidYMid meet" aria-label="starter rise over time"><text x="54" y="136" class="emptyChart">Waiting for the first reading</text></svg></div>`;
+function axisMarkup(layout) {
+  const horizontal = [0, .25, .5, .75, 1]
+    .map((step) => `M${layout.left} ${(layout.top + (layout.bottom - layout.top) * step).toFixed(1)}H${layout.right}`)
+    .join('');
+  const vertical = [0, .25, .5, .75, 1]
+    .map((step) => `M${(layout.left + (layout.right - layout.left) * step).toFixed(1)} ${layout.top}V${layout.bottom}`)
+    .join('');
+  return `<g class="axis"><path d="${horizontal}"/><path d="${vertical}"/></g>`;
+}
+
+function renderChartSvg({ observations, events, width, height, className, layout, empty = false }) {
+  const points = chartPoints(observations, layout);
+  if (empty || points.length === 0) {
+    return `<svg class="chart ${className}" data-chart="actual-observations" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" aria-label="starter rise over time"><text x="${layout.left}" y="${height / 2}" class="emptyChart">Waiting for the first reading</text></svg>`;
   }
 
   const linePath = points.map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(' ');
-  const areaPath = `${linePath} L${points.at(-1).x.toFixed(1)} 244 L${points[0].x.toFixed(1)} 244 Z`;
+  const areaPath = `${linePath} L${points.at(-1).x.toFixed(1)} ${layout.bottom} L${points[0].x.toFixed(1)} ${layout.bottom} Z`;
   const labels = [points[0], points[Math.floor(points.length / 2)], points.at(-1)]
     .filter((point, index, array) => array.findIndex((candidate) => candidate.time === point.time) === index);
   const eventMarkers = events
@@ -116,12 +132,23 @@ function renderChart(observations = [], events = []) {
       const eventMinutes = timeToMinutes(event.time);
       if (!Number.isFinite(eventMinutes)) return '';
       const nearest = points.reduce((best, point) => Math.abs(point.minutes - eventMinutes) < Math.abs(best.minutes - eventMinutes) ? point : best, points[0]);
-      return `<g class="eventMarker" transform="translate(${nearest.x.toFixed(1)} 48)"><line y1="0" y2="196"/><text x="8" y="13">${escapeHtml(event.title ?? 'Event')}</text></g>`;
+      return `<g class="eventMarker" transform="translate(${nearest.x.toFixed(1)} ${layout.top})"><line y1="0" y2="${layout.bottom - layout.top}"/><text x="8" y="15">${escapeHtml(event.title ?? 'Event')}</text></g>`;
     }).join('');
+  const labelY = height - 12;
+  const yLabelX = Math.max(4, layout.left - 46);
 
-  return `<div class="chartFrame"><svg class="chart" data-chart="actual-observations" viewBox="0 0 760 270" preserveAspectRatio="xMidYMid meet" aria-label="starter rise over time"><defs><linearGradient id="riseFill2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f54e00" stop-opacity=".26"/><stop offset="100%" stop-color="#f54e00" stop-opacity="0"/></linearGradient></defs><g class="axis"><path d="M54 28H730M54 82H730M54 136H730M54 190H730M54 244H730"/><path d="M54 28V244M223 28V244M392 28V244M561 28V244M730 28V244"/></g><g class="ylabel"><text x="8" y="34">100%</text><text x="16" y="88">75%</text><text x="16" y="142">50%</text><text x="16" y="196">25%</text><text x="24" y="249">0%</text></g>${eventMarkers}<path class="area" d="${areaPath}"/><path class="line" d="${linePath}"/><g class="dots">${points.map((point, index) => `<circle data-rise="${point.rise}" aria-label="${escapeHtml(point.time)}: ${point.rise >= 0 ? '+' : ''}${point.rise}% rise" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${index === points.length - 1 ? 7 : 5}"/>`).join('')}</g><g class="xlabel">${labels.map((point) => `<text x="${point.x.toFixed(1)}" y="266">${escapeHtml(point.time)}</text>`).join('')}</g></svg></div>`;
+  return `<svg class="chart ${className}" data-chart="actual-observations" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" aria-label="starter rise over time"><defs><linearGradient id="riseFill2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f54e00" stop-opacity=".26"/><stop offset="100%" stop-color="#f54e00" stop-opacity="0"/></linearGradient></defs>${axisMarkup(layout)}<g class="ylabel"><text x="${yLabelX}" y="${layout.top + 6}">100%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .25 + 6}">75%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .5 + 6}">50%</text><text x="${yLabelX}" y="${layout.top + (layout.bottom - layout.top) * .75 + 6}">25%</text><text x="${yLabelX + 8}" y="${layout.bottom + 4}">0%</text></g>${eventMarkers}<path class="area" d="${areaPath}"/><path class="line" d="${linePath}"/><g class="dots">${points.map((point, index) => `<circle data-rise="${point.rise}" aria-label="${escapeHtml(point.time)}: ${point.rise >= 0 ? '+' : ''}${point.rise}% rise" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${index === points.length - 1 ? 7 : 5}"/>`).join('')}</g><g class="xlabel">${labels.map((point, index) => {
+    const anchor = index === 0 ? 'start' : index === labels.length - 1 ? 'end' : 'middle';
+    return `<text text-anchor="${anchor}" x="${point.x.toFixed(1)}" y="${labelY}">${escapeHtml(point.time)}</text>`;
+  }).join('')}</g></svg>`;
 }
 
+function renderChart(observations = [], events = []) {
+  const points = normalizeChartData(observations);
+  const desktop = renderChartSvg({ observations, events, width: 760, height: 270, className: 'chartDesktop', layout: { left: 54, right: 730, top: 28, bottom: 244 }, empty: points.length === 0 });
+  const mobile = renderChartSvg({ observations, events, width: 390, height: 330, className: 'chartMobile', layout: { left: 48, right: 366, top: 34, bottom: 286 }, empty: points.length === 0 });
+  return `<div class="chartFrame">${desktop}${mobile}</div>`;
+}
 function logoSvg() {
   return `<div class="loafLogo" role="img" aria-label="cartoon bread loaf logo"><span class="loafBody"></span><span class="crust-mark crust-mark-a"></span><span class="crust-mark crust-mark-b"></span><span class="crust-mark crust-mark-c"></span><span class="loafSmile"></span></div>`;
 }

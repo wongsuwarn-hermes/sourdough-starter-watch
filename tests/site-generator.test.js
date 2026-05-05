@@ -126,10 +126,13 @@ test('renderSite gives the latest photo a more explanatory observation card', ()
   assert.match(html, /bubbles, the height line, and whether the top is domed or sinking/);
 });
 
-test('renderSite avoids mobile chart distortion by preserving SVG aspect ratio in a scrollable frame', () => {
+test('renderSite avoids mobile chart distortion with a larger mobile-specific SVG', () => {
   const html = renderSite(buildViewModel(sampleData));
 
   assert.match(html, /class="chartFrame"/);
+  assert.match(html, /class="chart chartDesktop"/);
+  assert.match(html, /class="chart chartMobile"/);
+  assert.match(html, /viewBox="0 0 390 330"/);
   assert.match(html, /preserveAspectRatio="xMidYMid meet"/);
   assert.doesNotMatch(html, /preserveAspectRatio="none"/);
 });
